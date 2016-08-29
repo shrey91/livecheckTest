@@ -1,9 +1,7 @@
 package com.liverton.livecheck.web.form;
 
-import com.liverton.livecheck.dao.model.SiteModel;
+import com.liverton.livecheck.dao.model.Site;
 import com.liverton.livecheck.model.PingState;
-
-import java.util.Date;
 
 /**
  * Created by sshah on 17/08/2016.
@@ -14,15 +12,15 @@ public class SitePingResultForm {
 
     private PingState pingState;
 
-    private SiteModel siteModel;
+    private Site site;
 
     public SitePingResultForm() {
     }
 
-    public SitePingResultForm( String responseTime, PingState pingState, SiteModel siteModel) {
+    public SitePingResultForm( String responseTime, PingState pingState, Site site) {
         this.responseTime = responseTime;
         this.pingState = pingState;
-        this.siteModel = siteModel;
+        this.site = site;
     }
 
 
@@ -42,12 +40,12 @@ public class SitePingResultForm {
         this.pingState = pingState;
     }
 
-    public SiteModel getSiteModel() {
-        return siteModel;
+    public Site getSite() {
+        return site;
     }
 
-    public void setSiteModel(SiteModel siteModel) {
-        this.siteModel = siteModel;
+    public void setSite(Site site) {
+        this.site = site;
     }
 
     @Override
@@ -55,7 +53,7 @@ public class SitePingResultForm {
         return "SitePingResultForm{" +
                 ", responseTime='" + responseTime + '\'' +
                 ", pingState=" + pingState +
-                ", siteModel=" + siteModel +
+                ", site=" + site +
                 '}';
     }
 }

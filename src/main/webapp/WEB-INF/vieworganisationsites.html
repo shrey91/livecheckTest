@@ -31,7 +31,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <div class="flex-container" th:each="viewSites : ${site.siteModels}">
+                                    <div class="flex-container" th:each="viewSites : ${site.sites}">
                                         <tr class="flex-item">
                                             <td th:text="${viewSites.siteName}"></td>
                                             <td th:text="${viewSites.ipAddress}"></td>

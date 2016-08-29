@@ -18,9 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 
@@ -53,7 +50,7 @@ public class LivertonController {
     private OrganisationRepository organisationRepository;
 
     @Autowired
-    private SiteModelRepository siteModelRepository;
+    private SiteRepository siteRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -134,7 +131,7 @@ public class LivertonController {
             }
 
 
-            SiteModel save = siteModelRepository.save(new SiteModel(siteModelForm.getSiteName(),
+            Site save = siteRepository.save(new Site(siteModelForm.getSiteName(),
                     siteModelForm.getEnabled(),
                     siteModelForm.getIpAddress(),
                     new Date(),
@@ -153,28 +150,28 @@ public class LivertonController {
     }
 
     @RequestMapping(value = "/displaySite", method = RequestMethod.GET)
-    public String displayNewSite(@ModelAttribute("newSite") SiteModel newSite, Model model) {
+    public String displayNewSite(@ModelAttribute("newSite") Site newSite, Model model) {
         model.addAttribute("newSite", newSite);
         return "submitform";
     }
 
     @RequestMapping("/existingsites")
     public String existingSites(Model model) {
-        model.addAttribute("existingSite", siteModelRepository.findAll());
+        model.addAttribute("existingSite", siteRepository.findAll());
         return "existingsites";
     }
 
     @RequestMapping("/deleteSite")
     public String deleteSite(@RequestParam("id") Long id) {
-        siteModelRepository.delete(id);
+        siteRepository.delete(id);
         return "redirect:/existingsites";
     }
 
     @RequestMapping("/editsite")
     public String editSite(@RequestParam("id") Long id, Model model) {
-        SiteModel siteModel = siteModelRepository.findOne(id);
-        model.addAttribute("siteModelForm", new EditSiteModelForm(siteModel.getSiteName(), siteModel.getEnabled(), siteModel.getIpAddress(), siteModel.getState(), siteModel.getAverageResponse(), siteModel.getId()));
-        model.addAttribute("siteState", siteModel.getState());
+        Site site = siteRepository.findOne(id);
+        model.addAttribute("siteModelForm", new EditSiteModelForm(site.getSiteName(), site.getEnabled(), site.getIpAddress(), site.getState(), site.getAverageResponse(), site.getId()));
+        model.addAttribute("siteState", site.getState());
         return "editsite";
 
     }
@@ -182,7 +179,7 @@ public class LivertonController {
 
     @RequestMapping("/viewpingresult")
     public String viewPingResult(@RequestParam("id") Long id, Model model) {
-        model.addAttribute("site", siteModelRepository.findOne(id));
+        model.addAttribute("site", siteRepository.findOne(id));
         return "viewpingresult";
 
     }
@@ -201,16 +198,16 @@ public class LivertonController {
             LOGGER.warn("Item not found -{}", bindingResult.getAllErrors());
             return "editsite";
         } else {
-            SiteModel siteModel = siteModelRepository.findOne(editSiteModelForm.getId());
-            siteModel.setDate(new Date());
-            siteModel.setEnabled(editSiteModelForm.getEnabled());
-            siteModel.setIpAddress(editSiteModelForm.getIpAddress());
-            siteModel.setSiteName(editSiteModelForm.getSiteName());
-            siteModel.setState(editSiteModelForm.getState());
+            Site site = siteRepository.findOne(editSiteModelForm.getId());
+            site.setDate(new Date());
+            site.setEnabled(editSiteModelForm.getEnabled());
+            site.setIpAddress(editSiteModelForm.getIpAddress());
+            site.setSiteName(editSiteModelForm.getSiteName());
+            site.setState(editSiteModelForm.getState());
 
-            siteModelRepository.save(siteModel);
+            siteRepository.save(site);
 //            redirectAttributes.addFlashAttribute("message");
-//            return "redirect:/editsite?id=" + siteModel.getId();
+//            return "redirect:/editsite?id=" + site.getId();
             return "redirect:/existingsites";
         }
     }
@@ -322,7 +319,7 @@ public class LivertonController {
     public String editOrg(@RequestParam("id") Long id, Model model) {
         Organisation organisation = organisationRepository.findOne(id);
         model.addAttribute("organisationForm", new EditOrganisationForm(organisation.getOrgName(), organisation.getDescription(), organisation.getId()));
-        model.addAttribute("sites", organisation.getSiteModels());
+        model.addAttribute("sites", organisation.getSites());
         return "editOrg";
 
     }
@@ -403,32 +400,32 @@ public class LivertonController {
 
     @RequestMapping("/sitemonitor")
     public String monitorSites(Model model) {
-        model.addAttribute("siteMonitor", siteModelRepository.findAll());
+        model.addAttribute("siteMonitor", siteRepository.findAll());
         return "sitemonitor";
     }
 
     @RequestMapping("/sitedisable")
     public String disableSite(@RequestParam("id") Long id) {
-        SiteModel siteModel = siteModelRepository.findOne(id);
-        siteModel.setEnabled(false);
-        siteModel.setState(SiteState.DISABLED);
-        siteModelRepository.save(siteModel);
+        Site site = siteRepository.findOne(id);
+        site.setEnabled(false);
+        site.setState(SiteState.DISABLED);
+        siteRepository.save(site);
         return "redirect:/existingsites";
     }
     @RequestMapping("/siteenable")
     public String enableSite(@RequestParam("id") Long id) {
-        SiteModel siteModel = siteModelRepository.findOne(id);
-        siteModel.setEnabled(true);
-        siteModel.setState(SiteState.WARNING);
-        siteModelRepository.save(siteModel);
+        Site site = siteRepository.findOne(id);
+        site.setEnabled(true);
+        site.setState(SiteState.WARNING);
+        siteRepository.save(site);
         return "redirect:/existingsites";
     }
 
     @RequestMapping("/acknowledgesite")
     public String acknowledgeSite(@RequestParam("id") Long id) {
-        SiteModel siteModel = siteModelRepository.findOne(id);
-        siteModel.setAcknowledged(true);
-        siteModelRepository.save(siteModel);
+        Site site = siteRepository.findOne(id);
+        site.setAcknowledged(true);
+        siteRepository.save(site);
         return "redirect:/existingsites";
     }
 }

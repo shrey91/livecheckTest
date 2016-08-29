@@ -25,23 +25,23 @@ public class Organisation extends AbstractPersistable<Long> {
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "organisation", orphanRemoval = true)
     @Cascade(value = CascadeType.ALL)
-    private List<SiteModel> siteModels = new ArrayList<>();
+    private List<Site> sites = new ArrayList<>();
 
-    public List<SiteModel> getSiteModels() {
-        return this.siteModels = siteModels;
+    public List<Site> getSites() {
+        return this.sites = sites;
     }
 
-    public void setSiteModels(List<SiteModel> siteModels) {
-        this.siteModels = siteModels;
+    public void setSites(List<Site> sites) {
+        this.sites = sites;
     }
 
-    public void addSiteModel(SiteModel siteModel) {
-        siteModel.setOrganisation(this);
-        siteModels.add(siteModel);
+    public void addSiteModel(Site site) {
+        site.setOrganisation(this);
+        sites.add(site);
     }
 
-    public void removeSiteModel(SiteModel siteModel) {
-        siteModels.remove(siteModel);
+    public void removeSiteModel(Site site) {
+        sites.remove(site);
     }
 
     public Organisation() {
@@ -68,10 +68,10 @@ public class Organisation extends AbstractPersistable<Long> {
         this.description = description;
     }
 
-    public Organisation(String orgName, String description, List<SiteModel> siteModels) {
+    public Organisation(String orgName, String description, List<Site> sites) {
         this.orgName = orgName;
         this.description = description;
-        this.siteModels = siteModels;
+        this.sites = sites;
     }
 
     @Override

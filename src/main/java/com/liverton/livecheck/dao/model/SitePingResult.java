@@ -24,23 +24,23 @@ public class SitePingResult extends AbstractPersistable<Long> {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Site_id")
-    private SiteModel siteModel;
+    private Site site;
 
 
     public SitePingResult() {
     }
 
-    public SitePingResult(Date date, String responseTime, SiteModel siteModel) {
+    public SitePingResult(Date date, String responseTime, Site site) {
         this.date = date;
         this.responseTime = responseTime;
-        this.siteModel = siteModel;
+        this.site = site;
     }
 
-    public SitePingResult(Date date, PingState pingState, String responseTime, SiteModel siteModel) {
+    public SitePingResult(Date date, PingState pingState, String responseTime, Site site) {
         this.date = date;
         this.pingState = pingState;
         this.responseTime = responseTime;
-        this.siteModel = siteModel;
+        this.site = site;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class SitePingResult extends AbstractPersistable<Long> {
                 "date=" + date +
                 ", pingState=" + pingState +
                 ", responseTime='" + responseTime + '\'' +
-                ", siteModel=" + siteModel +
+                ", site=" + site +
                 '}';
     }
 
@@ -69,12 +69,12 @@ public class SitePingResult extends AbstractPersistable<Long> {
         this.responseTime = responseTime;
     }
 
-    public SiteModel getSiteModel() {
-        return siteModel;
+    public Site getSite() {
+        return site;
     }
 
-    public void setSiteModel(SiteModel siteModel) {
-        this.siteModel = siteModel;
+    public void setSite(Site site) {
+        this.site = site;
     }
 
     public PingState getPingState() {

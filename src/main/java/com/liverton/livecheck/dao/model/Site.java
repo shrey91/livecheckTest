@@ -2,8 +2,6 @@ package com.liverton.livecheck.dao.model;
 
 import com.liverton.livecheck.model.NotificationAction;
 import com.liverton.livecheck.model.SiteState;
-import com.sun.istack.internal.Nullable;
-import org.aspectj.weaver.ast.Or;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.CascadeType;
 import org.springframework.data.jpa.domain.AbstractPersistable;
@@ -18,7 +16,7 @@ import java.util.List;
  * Created by sshah on 8/08/2016.
  */
 @Entity
-public class SiteModel extends AbstractPersistable<Long> {
+public class Site extends AbstractPersistable<Long> {
 
     @Column(nullable = false)
     private String siteName;
@@ -61,16 +59,16 @@ public class SiteModel extends AbstractPersistable<Long> {
     @JoinColumn(name = "Organisation_id", nullable = false)
     private Organisation organisation;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "siteModel", orphanRemoval = true)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "site", orphanRemoval = true)
     @Cascade(value = CascadeType.ALL)
     private List<SitePingResult> sitePingResults = new ArrayList<>();
 
 
-    public SiteModel() {
+    public Site() {
 
     }
 
-    public SiteModel(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendEmail, Boolean monitorHttp, Boolean monitorSmtp, Organisation organisation) {
+    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendEmail, Boolean monitorHttp, Boolean monitorSmtp, Organisation organisation) {
         this.siteName = siteName;
         this.enabled = enabled;
         this.ipAddress = ipAddress;
@@ -185,7 +183,7 @@ public class SiteModel extends AbstractPersistable<Long> {
     }
 
     public void addPingResult(SitePingResult sitePingResult) {
-        sitePingResult.setSiteModel(this);
+        sitePingResult.setSite(this);
         sitePingResults.add(sitePingResult);
     }
 
@@ -207,7 +205,7 @@ public class SiteModel extends AbstractPersistable<Long> {
 
     @Override
     public String toString() {
-        return "SiteModel{" +
+        return "Site{" +
                 "siteName='" + siteName + '\'' +
                 ", enabled=" + enabled +
                 ", ipAddress='" + ipAddress + '\'' +

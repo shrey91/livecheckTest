@@ -1,40 +1,27 @@
 package com.liverton.livecheck.service.impl;
 
 import com.liverton.livecheck.dao.model.*;
-import com.liverton.livecheck.dao.repository.AuthorityRepository;
-import com.liverton.livecheck.dao.repository.SiteModelRepository;
+import com.liverton.livecheck.dao.repository.SiteRepository;
 import com.liverton.livecheck.dao.repository.SitePingResultRepository;
-import com.liverton.livecheck.dao.repository.UserRepository;
 import com.liverton.livecheck.model.PingState;
 import com.liverton.livecheck.model.SiteState;
 import com.liverton.livecheck.service.SiteService;
-import com.liverton.livecheck.service.domain.Site;
-import com.mysql.jdbc.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMailMessage;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 
 import java.io.*;
 import java.lang.*;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.net.*;
@@ -51,7 +38,7 @@ import static com.liverton.livecheck.model.SiteState.OKAY;
 public class SiteServiceImpl implements SiteService {
 
     @Autowired
-    private SiteModelRepository repository;
+    private SiteRepository repository;
 
     @Autowired
     SitePingResultRepository sitePingResultRepository;
@@ -79,9 +66,9 @@ public class SiteServiceImpl implements SiteService {
 //        while (keepRunning) {
         try {
 
-            for (SiteModel siteModel : repository.findAll()) {
-                if(siteModel.getEnabled()) {
-                    Process p1 = java.lang.Runtime.getRuntime().exec("ping " + siteModel.getIpAddress());
+            for (Site site : repository.findAll()) {
+                if(site.getEnabled()) {
+                    Process p1 = java.lang.Runtime.getRuntime().exec("ping " + site.getIpAddress());
                     int returnVal = p1.waitFor();
                     SitePingResult sitePingResult = new SitePingResult();
                     BufferedReader in = new BufferedReader(new InputStreamReader(p1.getInputStream()));
@@ -96,7 +83,7 @@ public class SiteServiceImpl implements SiteService {
                     String pingstats = results[1].trim();
                     sitePingResult.setResponseTime(pingstats);
                     sitePingResult.setDate(new Date());
-                    sitePingResult.setSiteModel(siteModel);
+                    sitePingResult.setSite(site);
                     p1.waitFor();
 
                     if (returnVal == 0) {
@@ -104,34 +91,34 @@ public class SiteServiceImpl implements SiteService {
                         String ss = builder.toString();
                         String[] parts = ss.split("Average =");
                         String pingTime = parts[1].trim();
-                        siteModel.setAverageResponse(pingTime);
-                        siteModel.setFailureCount(0);
-                        siteModel.setState(OKAY);
-                        siteModel.setAcknowledged(false);
+                        site.setAverageResponse(pingTime);
+                        site.setFailureCount(0);
+                        site.setState(OKAY);
+                        site.setAcknowledged(false);
                         sitePingResult.setPingState(PingState.YES);
-                        if (!siteModel.getEnabled()) {
-                            siteModel.setState(SiteState.DISABLED);
+                        if (!site.getEnabled()) {
+                            site.setState(SiteState.DISABLED);
                         }
 
 
                     } else {
-                        siteModel.setFailureCount((siteModel.getFailureCount() != null) ? siteModel.getFailureCount() + 1 : 1);
-                        siteModel.setAverageResponse("N/A");
+                        site.setFailureCount((site.getFailureCount() != null) ? site.getFailureCount() + 1 : 1);
+                        site.setAverageResponse("N/A");
                         sitePingResult.setPingState(PingState.NO);
-                        if (siteModel.getFailureCount() >= 5 && siteModel.getFailureCount() < 10) {
-                            siteModel.setState(SiteState.WARNING);
-                        } else if (siteModel.getFailureCount() >= 10) {
-                            siteModel.setState(SiteState.ERROR);
-                            siteModel.setSendEmail(false);
+                        if (site.getFailureCount() >= 5 && site.getFailureCount() < 10) {
+                            site.setState(SiteState.WARNING);
+                        } else if (site.getFailureCount() >= 10) {
+                            site.setState(SiteState.ERROR);
+                            site.setSendEmail(false);
 
                         } else {
-                            LOGGER.info("Site with name :{} has failed with count :{}", siteModel.getSiteName(), siteModel.getFailureCount());
+                            LOGGER.info("Site with name :{} has failed with count :{}", site.getSiteName(), site.getFailureCount());
                         }
                     }
                     sitePingResultRepository.save(sitePingResult);
-                    pollHttp(siteModel);
-                    pollSmtp(siteModel);
-                    repository.save(siteModel);
+                    pollHttp(site);
+                    pollSmtp(site);
+                    repository.save(site);
                 }
             }
         } catch (UnknownHostException e) {
@@ -144,8 +131,8 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
-    private void pollHttp(SiteModel siteModel) {
-        String url = "http://" + siteModel.getIpAddress();
+    private void pollHttp(Site site) {
+        String url = "http://" + site.getIpAddress();
 
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet(url);
@@ -153,13 +140,13 @@ public class SiteServiceImpl implements SiteService {
         try {
             HttpResponse response = client.execute(request);
             if (response.getStatusLine().getStatusCode() == 200) {
-                siteModel.setMonitorHttp(true);
+                site.setMonitorHttp(true);
             }
         } catch (ConnectException e) {
-            siteModel.setMonitorHttp(false);
+            site.setMonitorHttp(false);
             LOGGER.info("Error " + e);
         } catch (IOException e) {
-            siteModel.setMonitorHttp(false);
+            site.setMonitorHttp(false);
             e.printStackTrace();
         } catch (Exception e) {
             LOGGER.info("Exception was " + e);
@@ -167,7 +154,7 @@ public class SiteServiceImpl implements SiteService {
 
     }
 
-    private void pollSmtp(SiteModel siteModel) {
+    private void pollSmtp(Site site) {
         BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
         try {
@@ -184,13 +171,13 @@ public class SiteServiceImpl implements SiteService {
             String sentence2 = inFromServer.readLine();
             Matcher matcher = pattern.matcher(sentence2);
             if (matcher.matches()) {
-                siteModel.setMonitorSmtp(true);
+                site.setMonitorSmtp(true);
             }
 //            modifiedSentence = inFromServer.readLine();
 //            System.out.println(modifiedSentence);
             clientSocket.close();
         } catch (Exception e) {
-            siteModel.setMonitorSmtp(false);
+            site.setMonitorSmtp(false);
             LOGGER.info("Could not reach site " + e);
         }
     }
@@ -208,9 +195,9 @@ public class SiteServiceImpl implements SiteService {
         List<String> numbers = new ArrayList<>();
         numbers.add("64212842309");
         try {
-            for (SiteModel siteModel : repository.findAll()) {
-                if (!siteModel.getSendEmail() && !siteModel.getAcknowledged() && siteModel.getEnabled()) {
-                    if (siteModel.getState() == SiteState.ERROR) {
+            for (Site site : repository.findAll()) {
+                if (!site.getSendEmail() && !site.getAcknowledged() && site.getEnabled()) {
+                    if (site.getState() == SiteState.ERROR) {
                         Properties properties = new Properties();
                         properties.setProperty("mail.transport.protocol", "smtp");
                         properties.setProperty("mail.smtp.auth", "true");
@@ -219,17 +206,17 @@ public class SiteServiceImpl implements SiteService {
                         MimeMessageHelper helper = new MimeMessageHelper(mailMessage, true);
                         helper.setTo("shrey.shah@liverton.com");
                         helper.setFrom("livecheck@liverton.com");
-                        helper.setSubject(siteModel.getSiteName() + " is Down");
+                        helper.setSubject(site.getSiteName() + " is Down");
                         helper.setText(
-                                siteModel.getSiteName()
+                                site.getSiteName()
                                         + " is Down. It took "
-                                        + siteModel.getAverageResponse()
+                                        + site.getAverageResponse()
                                         + " to respond. Failed to ping site "
-                                        + siteModel.getFailureCount()
+                                        + site.getFailureCount()
                                         + " times.");
                         javaMailSender.send(mailMessage);
-                        siteModel.setSendEmail(true);
-                        MessageRequest messageRequest = new MessageRequest(siteModel.getSiteName() + " is down. IP Address registered to the number is " + siteModel.getIpAddress() + " Failed to ping " + siteModel.getFailureCount() + " times.", numbers);
+                        site.setSendEmail(true);
+                        MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
                         String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
                         LOGGER.info(result.toString());
                     }
@@ -249,7 +236,7 @@ public class SiteServiceImpl implements SiteService {
 
 
     @Override
-    public List<Site> findSites() {
-        return Arrays.asList(new Site("Test Site", true), new Site("Disabled Site", false));
+    public List<com.liverton.livecheck.service.domain.Site> findSites() {
+        return Arrays.asList(new com.liverton.livecheck.service.domain.Site("Test Site", true), new com.liverton.livecheck.service.domain.Site("Disabled Site", false));
     }
 }
