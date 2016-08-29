@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="content-type" charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>New Site </title>
+        <object th:include="fragments/head :: head" th:remove="tag"/>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div th:replace="fragments/header :: sidebar"/>
+            <div id="page-content-wrapper">
+                <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
+                    <span class="hamb-top"></span>
+                    <span class="hamb-middle"></span>
+                    <span class="hamb-bottom"></span>
+                </button>
+                <div class="container" style="margin-top: 70px">
+                    <div class="row">
+                        <h2>Add Site</h2>
+                        <div class="col-lg-12 col-lg-offset-2">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <form th:action="@{/newsite}" th:object="${siteModelForm}" method="post">
+                                        <div class="form-group">
+                                            <div class="form-group">
+                                                <label for="siteName">Name of Site :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{siteName}"
+                                                       placeholder="Site Name"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <p th:if="${#fields.hasErrors('siteName')}" th:errors="*{siteName}">
+                                                    Wrong
+                                                    Site Name</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="siteIP">IP Address of the Site :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{ipAddress}"
+                                                       placeholder="IP Address"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <p th:if="${#fields.hasErrors('ipAddress')}" th:errors="*{ipAddress}">
+                                                    Invalid IP Address</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="organisations">Belongs to Organisation :</label>
+                                                <select th:field="*{organisation}">
+                                                    <option value="">Select Organisation</option>
+                                                    <option th:each="org : ${organisations}"
+                                                            th:value="${org.id}"
+                                                            th:text="${org.orgName}">Liverton
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <p th:if="${#fields.hasErrors('ipAddress')}" th:errors="*{ipAddress}">
+                                                    Invalid IP Address</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="enabled">Is the site up and running :</label>
+                                                <label class="checkbox-inline"><input type="checkbox"
+                                                                                      th:field="*{enabled}"/>Yes</label>
+                                            </div>
+                                            <div style="text-align: center">
+                                                <input class="btn btn-default form-group" type="submit" value="Submit"/>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:replace="fragments/header :: footer"/>
+    </body>
+</html>

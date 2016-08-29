@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="content-type" charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Welcome Page </title>
+        <object th:include="fragments/head :: head" th:remove="tag"/>
+    </head>
+    <body>
+        <!--<div th:replace="fragments/header :: header"/>-->
+        <div id="wrapper">
+            <div th:replace="fragments/header :: sidebar"/>
+            <div id="page-content-wrapper">
+                <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
+                    <span class="hamb-top"></span>
+                    <span class="hamb-middle"></span>
+                    <span class="hamb-bottom"></span>
+                </button>
+                <div class="container" style="margin-top: 70px">
+                    <div class="row">
+                        <h2>Organisations</h2>
+                        <div class="col-lg-12 col-lg-offset-2">
+                            <div class="row">
+                                <div class="flex-container col-lg-8">
+                                    <table class="table table-hover table-bordered container col-med-12">
+                                        <thead>
+                                            <tr class="flex-item">
+                                                <th>Organisation Name</th>
+                                                <th>Organisation Description</th>
+                                                <th>Edit</th>
+                                                <th>View Sites</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                            <tr class="flex-item" th:each="organisations : ${existingOrganisations}">
+                                                <td th:text="${organisations.orgName}"></td>
+                                                <td th:text="${organisations.description}"></td>
+                                                <td>
+                                                    <a class="btn btn-default" th:href="@{/editOrg(id=${organisations.id})}"><i class="fa fa-cog"></i>&nbsp; Edit</a>
+                                                </td>
+                                                <td>
+                                                    <a class="btn btn-info" th:href="@{/vieworganisationsites(id=${organisations.id})}">View
+                                                        Sites</a>
+                                                </td>
+                                                <td>
+                                                    <a class="btn btn-danger" th:href="@{/deleteOrg(id=${organisations.id})}"><i class="fa fa-trash-o fa-lg"></i>&nbsp; Delete</a>
+                                                </td>
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="fragments/header :: footer"/>
+        </div>
+    </body>
+</html>

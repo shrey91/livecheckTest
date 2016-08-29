@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org" >
+    <head>
+    </head>
+    <body>
+        <div id="wrapper" >
+            <div class="overlay"></div>
+            <div th:fragment="sidebar" >
+                <!-- Sidebar -->
+                <nav class="navbar navbar-inverse navbar-fixed-top col-med-4" id="sidebar-wrapper" role="navigation">
+                    <ul class="nav sidebar-nav">
+                        <li class="sidebar-brand">
+                            <h3><a href="#" th:href="@{/}">LiveCheck</a></h3>
+                        </li>
+                        <li>
+                            <a href="" th:href="@{/welcome}"> Home</a>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Sites<span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li class="dropdown-header">What would you like to do?</li>
+                                <li><a href="#" th:href="@{/existingsites}">Existing Sites</a></li>
+                                <li sec:authorize="hasRole('ROLE_ADMIN')"><a href="#" th:href="@{/newsite}">Add New Site</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Organisations <span
+                                    class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li class="dropdown-header">What would you like to do?</li>
+                                <li><a href="#" th:href="@{/organisations}">View Organisations</a></li>
+                                <li sec:authorize="hasRole('ROLE_ADMIN')"><a href="#" th:href="@{/newOrganisation}">Add Organisation</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" sec:authorize="hasRole('ROLE_ADMIN')">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Users<span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li class="dropdown-header">What would you like to do?</li>
+                                <li><a href="#" th:href="@{/users}">View Users</a></li>
+                                <li ><a href="#" th:href="@{/newuser}">Add Users</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown" sec:authorize="hasRole('ROLE_ADMIN')">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Authorities<span
+                                    class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li class="dropdown-header">What would you like to do?</li>
+                                <li><a href="#" th:href="@{/authorities}">View Authorities</a></li>
+                                <li><a href="#" th:href="@{/addAuth}">Add Authority</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a href="" th:href="@{/sitemonitor}">Site Monitor</a>
+                        </li>
+                        <li>
+                            <a href="" th:href="@{/logout}">Logout</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+
+            <div class="footer" th:fragment="footer">
+                <p class="footer-p">version 1.0</p>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta http-equiv="content-type" charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Site List </title>
+        <object th:include="fragments/head :: head" th:remove="tag"/>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div th:replace="fragments/header :: sidebar"/>
+            <div id="page-content-wrapper">
+                <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
+                    <span class="hamb-top"></span>
+                    <span class="hamb-middle"></span>
+                    <span class="hamb-bottom"></span>
+                </button>
+                <div class="container" style="margin-top: 70px">
+                    <a href="/organisations" class="btn btn-default btn-back">Back to Organisations</a>
+                    <div class="row">
+                        <div class="col-lg-8 col-lg-offset-2">
+                            <h2>Site List</h2>
+                            <table class="table table-hover table-bordered container col-med-12">
+                                <thead>
+                                    <tr class="flex-item">
+                                        <th>Site Name</th>
+                                        <th>IP Address</th>
+                                        <th>Enabled</th>
+                                        <th>Average Response</th>
+                                        <th>Site Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <div class="flex-container" th:each="viewSites : ${site.siteModels}">
+                                        <tr class="flex-item">
+                                            <td th:text="${viewSites.siteName}"></td>
+                                            <td th:text="${viewSites.ipAddress}"></td>
+                                            <td th:text="${viewSites.enabled}"></td>
+                                            <td th:text="${viewSites.averageResponse}"></td>
+                                            <td th:text="${viewSites.state}"></td>
+                                        </tr>
+                                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div th:replace="fragments/header :: footer"/>
+        </div>
+    </body>
+
+</html>
