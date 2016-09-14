@@ -61,22 +61,10 @@ public class LivertonController {
     private AuthorityRepository authorityRepository;
 
     @Autowired
-    private SecurityService securityService;
-
-    @Autowired
-    private UserValidator userValidator;
-
-    @Autowired
     SitePingResultRepository sitePingResultRepository;
 
     @Autowired
     private SitePingResultService sitePingResultService;
-
-    @Autowired
-    private ApplicationStatusService applicationStatusService;
-
-    @Autowired
-    private ApplicationStatusRepository applicationStatusRepository;
 
     @RequestMapping("/hello")
     public String hello(@RequestParam(value = "name", required = false, defaultValue = "XYZ") String name, Model model) {
@@ -93,19 +81,9 @@ public class LivertonController {
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login() {
-//        securityService.autologin("username","password");
         return "login";
     }
-//    @RequestMapping(value="/login", method = RequestMethod.POST)
-//    public String login(@ModelAttribute("userForm") User userForm, BindingResult bindingResult) {
-//        userValidator.validate(userForm, bindingResult);
-//        if(bindingResult.hasErrors()){
-//            return "login";
-//        }
-//
-//        securityService.autologin(userForm.getName(),userForm.getPassword());
-//        return "redirect/welcome";
-//    }
+
 
     @RequestMapping("welcome")
     public String welcomeForm() {
@@ -129,8 +107,6 @@ public class LivertonController {
             return "newSite";
         } else {
             LOGGER.info("Validation successful - {}", siteModelForm);
-
-            Organisation organisation = organisationRepository.findOne(siteModelForm.getOrganisation().getId());
 
             NotificationAction notificationAction = null;
             if (notificationAction == null) {
@@ -177,7 +153,7 @@ public class LivertonController {
         Site site = siteRepository.findOne(id);
         model.addAttribute("pingResults", sitePingResultRepository.findTop10BySiteOrderByDateDesc(site));
         model.addAttribute("siteName", site.getSiteName());
-//        model.addAttribute("site", siteRepository.findOne(id));
+
 
         return "site/viewPingResult";
 
@@ -204,15 +180,7 @@ public class LivertonController {
             site.setSiteName(editSiteModelForm.getSiteName());
             site.setState(editSiteModelForm.getState());
             updateApplicationStatus(site,editSiteModelForm);
-
-//            site.setApplicationStatus(editSiteModelForm.getApplicationStatus());
-//            for(site.setApplicationStatus(editSiteModelForm.getApplicationStatus()){
-//
-//            }
-
             siteRepository.save(site);
-//            redirectAttributes.addFlashAttribute("message");
-//            return "redirect:/editsite?id=" + site.getId();
             return "redirect:/existingSites";
         }
     }
@@ -244,7 +212,6 @@ public class LivertonController {
 
     @RequestMapping(value = "/newUser", method = RequestMethod.POST)
     public String newUser(@ModelAttribute @Valid UserForm userForm, BindingResult bindingResult, Model model) {
-//        userValidator.validate(userForm, bindingResult);
         if (bindingResult.hasErrors()) {
             LOGGER.warn("User Form contains errors - {}", bindingResult.getAllErrors());
             return "newSite";
