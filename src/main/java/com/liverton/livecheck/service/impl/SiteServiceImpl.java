@@ -20,6 +20,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -41,7 +42,7 @@ import static com.liverton.livecheck.model.SiteState.OKAY;
 /**
  * Created by sshah on 8/08/2016.
  */
-
+@Service
 public class SiteServiceImpl implements SiteService {
 
     @Autowired

@@ -6,12 +6,14 @@ import com.liverton.livecheck.service.SitePingResultService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * Created by sshah on 17/08/2016.
  */
+@Service
 public class SitePingResultServiceImpl implements SitePingResultService {
 
     @Autowired

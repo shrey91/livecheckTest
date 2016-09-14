@@ -5,6 +5,7 @@ import com.liverton.livecheck.dao.model.ApplicationStatus;
 import com.liverton.livecheck.dao.repository.ApplicationStatusRepository;
 import com.liverton.livecheck.service.ApplicationStatusService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
 /**
  * Created by sshah on 29/08/2016.
  */
+@Service
 public class ApplicationStatusServiceImpl implements ApplicationStatusService {
 
     @Autowired

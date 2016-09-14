@@ -5,6 +5,7 @@ import com.liverton.livecheck.dao.repository.AuthorityRepository;
 import com.liverton.livecheck.service.AuthorityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * Created by sshah on 10/08/2016.
  */
+@Service
 public class AuthorityServiceImpl implements AuthorityService {
 
     @Autowired
