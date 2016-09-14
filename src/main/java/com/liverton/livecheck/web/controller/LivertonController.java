@@ -63,21 +63,6 @@ public class LivertonController {
     @Autowired
     SitePingResultRepository sitePingResultRepository;
 
-    @Autowired
-    private SitePingResultService sitePingResultService;
-
-    @RequestMapping("/hello")
-    public String hello(@RequestParam(value = "name", required = false, defaultValue = "XYZ") String name, Model model) {
-        model.addAttribute("name", name);
-        model.addAttribute("sites", service.findSites());
-        model.addAttribute("users", userService.findUsers());
-        model.addAttribute("authority", authorityService.findRoles());
-        model.addAttribute("organisations", organisationService.findByOrgName());
-        model.addAttribute("sitestate");
-        model.addAttribute("sitepingresult", sitePingResultService.findByDate());
-
-        return "hello";
-    }
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
     public String login() {
