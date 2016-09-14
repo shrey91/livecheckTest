@@ -1,9 +1,11 @@
 package com.liverton.livecheck.dao.config;
 
+import com.liverton.livecheck.dao.config.conditional.IsMySQLDatabaseCondition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -27,12 +29,13 @@ import java.util.Properties;
 @EnableJpaRepositories(basePackages = {"com.liverton.livecheck"})
 @PropertySource(value = "classpath:database.properties")
 @Configuration
-public class DatabaseConfiguration {
+@Conditional(value = IsMySQLDatabaseCondition.class)
+public class MySQLDatabaseConfiguration {
 
     /**
      * Logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DatabaseConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MySQLDatabaseConfiguration.class);
 
     @Value(value = "${db.url}")
     private String dbUrl;
@@ -93,9 +96,11 @@ public class DatabaseConfiguration {
         properties.setProperty("hibernate.batch_size", "100");
         properties.setProperty("hibernate.order_inserts", "true");
         properties.setProperty("hibernate.order_updates", "true");
-
+//        properties.setProperty("hibernate.show_sql", "true");
         return properties;
     }
+
+
 
 
     /**

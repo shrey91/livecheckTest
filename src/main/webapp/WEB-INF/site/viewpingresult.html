@@ -16,7 +16,7 @@
                     <span class="hamb-bottom"></span>
                 </button>
                 <div class="container" style="margin-top: 70px" id="top">
-                    <a href="/existingsites" class="btn btn-default btn-back">Back to Sites</a>
+                    <a href="/existingSites" class="btn btn-default btn-back">Back to Sites</a>
                     <div class="row">
                         <div class="col-lg-8 col-lg-offset-2">
                             <h2 >Ping Result</h2>
@@ -30,12 +30,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <div class="flex-container" th:each="pingResult : ${site.sitePingResults}">
+                                    <div class="flex-container" th:each="pingResult : ${pingResults}">
                                         <tr class="flex-item">
                                             <td th:text="${pingResult.date}"></td>
                                             <td th:text="${pingResult.pingState}"></td>
                                             <td th:text="${pingResult.responseTime}"></td>
-                                            <td th:text="${site.siteName}"></td>
+                                            <td th:text="${siteName}"></td>
                                         </tr>
                                     </div>
                                 </tbody>

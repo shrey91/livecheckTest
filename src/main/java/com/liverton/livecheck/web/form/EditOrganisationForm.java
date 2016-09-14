@@ -15,8 +15,8 @@ public class EditOrganisationForm extends Organisation {
     public EditOrganisationForm() {
     }
 
-    public EditOrganisationForm(String orgName, String description, Long id) {
-        super(orgName, description);
+    public EditOrganisationForm(String orgName, String description, String fromEmail, String toEmail, String host, String portNumber, String textDestination, Long id) {
+        super(orgName, description,fromEmail,toEmail,host,portNumber,textDestination);
         this.id = id;
     }
 

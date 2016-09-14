@@ -32,11 +32,24 @@ public class ThymeleafConfiguration  {
     @Bean
     public SpringTemplateEngine templateEngine() {
         SpringTemplateEngine templateEngine = new SpringTemplateEngine();
+        templateEngine.addTemplateResolver(classpathTemplateResolver());
         templateEngine.addTemplateResolver(defaultTemplateResolver());
         templateEngine.addTemplateResolver(commonTemplateResolver());
         templateEngine.addDialect(new SpringSecurityDialect());
 
         return templateEngine;
+    }
+
+    @Bean
+    public ClassLoaderTemplateResolver classpathTemplateResolver() {
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setPrefix("WEB-INF/");
+        resolver.setSuffix(thymeleafSuffix);
+        resolver.setTemplateMode(thymeleafMode);
+        resolver.setCharacterEncoding(thymeleafEncoding);
+        resolver.setOrder(1);
+        resolver.setCacheable(thymeleafCache);
+        return resolver;
     }
 
     @Bean
@@ -46,7 +59,7 @@ public class ThymeleafConfiguration  {
         defaultTemplateResolver.setSuffix(thymeleafSuffix);
         defaultTemplateResolver.setTemplateMode(thymeleafMode);
         defaultTemplateResolver.setCharacterEncoding(thymeleafEncoding);
-        defaultTemplateResolver.setOrder(1);
+        defaultTemplateResolver.setOrder(2);
         defaultTemplateResolver.setCacheable(thymeleafCache);
 
         return defaultTemplateResolver;
@@ -59,7 +72,7 @@ public class ThymeleafConfiguration  {
         commonFragmentResolver.setSuffix(thymeleafSuffix);
         commonFragmentResolver.setTemplateMode(thymeleafMode);
         commonFragmentResolver.setCharacterEncoding(thymeleafEncoding);
-        commonFragmentResolver.setOrder(2);
+        commonFragmentResolver.setOrder(3);
         commonFragmentResolver.setCacheable(thymeleafCache);
         return commonFragmentResolver;
     }
@@ -70,7 +83,7 @@ public class ThymeleafConfiguration  {
         resolver.setViewClass(ThymeleafView.class);
         resolver.setTemplateEngine(templateEngine());
         resolver.setCharacterEncoding(thymeleafEncoding);
-        resolver.setOrder(2);
+        resolver.setOrder(4);
         resolver.setCache(thymeleafCache);
         return resolver;
     }

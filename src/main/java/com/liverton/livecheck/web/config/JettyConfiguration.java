@@ -22,6 +22,7 @@ import javax.servlet.ServletException;
 import javax.servlet.SessionCookieConfig;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Created by sshah on 11/08/2016.
@@ -109,11 +110,11 @@ public class JettyConfiguration implements EmbeddedServletContainerCustomizer {
 
     private File calculateWebApplicationRoot() throws IOException {
 
-        final ClassPathResource resource = new ClassPathResource("webapp");
+        final File resource = new File("./src/main/webapp");
         if (resource.exists()) {
-            return resource.getFile();
+            return resource;
+        } else {
+            return new ClassPathResource("WEB-INF").getFile();
         }
-
-        return new File("./src/main/webapp");
     }
 }

@@ -62,11 +62,11 @@
                                                     </td>
                                                     <td sec:authorize="hasRole('ROLE_ADMIN')">
 
-                                                        <a th:href="@{/editsite(id=${site.id})}"
+                                                        <a th:href="@{/editSite(id=${site.id})}"
                                                            class="btn btn-default "><i class="fa fa-cog"></i>&nbsp; Edit</a>
                                                     </td>
                                                     <td>
-                                                        <a th:href="@{/viewpingresult(id=${site.id})}"
+                                                        <a th:href="@{/viewPingResult(id=${site.id})}"
                                                            class="btn btn-info"
                                                            th:attr="data-site-id=${site.id}">
                                                             <i class="fa fa-book fa-fw" aria-hidden="true"></i>&nbsp;
@@ -74,27 +74,27 @@
                                                     </td>
                                                     <td sec:authorize="hasRole('ROLE_ADMIN')">
                                                         <a class="btn btn-danger" th:if="${site.enabled == true}"
-                                                           th:href="@{/sitedisable(id=${site.id})}"><i class="fa fa-times" aria-hidden="true"></i>&nbsp; Disable</a>
+                                                           th:href="@{/siteDisable(id=${site.id})}"><i class="fa fa-times" aria-hidden="true"></i>&nbsp; Disable</a>
                                                         <a class="btn btn-success" th:if="${site.enabled == false}"
-                                                           th:href="@{/siteenable(id=${site.id})}"><i class="fa fa-check" aria-hidden="true"></i>&nbsp; Enable</a>
+                                                           th:href="@{/siteEnable(id=${site.id})}"><i class="fa fa-check" aria-hidden="true"></i>&nbsp; Enable</a>
                                                     </td>
                                                     <td sec:authorize="hasRole('ROLE_ADMIN')">
                                                 <span>
                                                 <a class="btn btn-primary"
                                                    th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ERROR}"
-                                                   th:href="@{/acknowledgesite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
+                                                   th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
                                                         <span><a class="btn btn-primary "
                                                                  th:if="${site.state == T(com.liverton.livecheck.model.SiteState).WARNING}"
                                                                  disabled="disabled"
-                                                                 th:href="@{/acknowledgesite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
+                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
                                                         <span><a class="btn btn-primary "
                                                                  th:if="${site.state == T(com.liverton.livecheck.model.SiteState).OKAY}"
                                                                  disabled="disabled"
-                                                                 th:href="@{/acknowledgesite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
+                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
                                                         <span><a class="btn btn-primary "
                                                                  th:if="${site.state == T(com.liverton.livecheck.model.SiteState).DISABLED}"
                                                                  disabled="disabled"
-                                                                 th:href="@{/acknowledgesite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
+                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
                                                     </td>
                                                     <td sec:authorize="hasRole('ROLE_ADMIN')">
                                                         <a class="btn btn-danger"

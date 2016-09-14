@@ -1,5 +1,6 @@
 package com.liverton.livecheck.dao.model;
 
+import com.liverton.livecheck.boot.config.Application;
 import com.liverton.livecheck.model.NotificationAction;
 import com.liverton.livecheck.model.SiteState;
 import org.hibernate.annotations.*;
@@ -55,20 +56,25 @@ public class Site extends AbstractPersistable<Long> {
     private Boolean monitorSmtp;
 
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "Organisation_id", nullable = false)
     private Organisation organisation;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "site", orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "site")
+    @Fetch(FetchMode.SELECT)
     @Cascade(value = CascadeType.ALL)
     private List<SitePingResult> sitePingResults = new ArrayList<>();
 
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "site")
+    @Fetch(FetchMode.SELECT)
+    @Cascade(value = CascadeType.ALL)
+    private List<ApplicationStatus> applicationStatus = new ArrayList<>();
 
     public Site() {
 
     }
 
-    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendEmail, Boolean monitorHttp, Boolean monitorSmtp, Organisation organisation) {
+    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendEmail, Boolean monitorHttp, Boolean monitorSmtp,List<ApplicationStatus> applicationStatus, Organisation organisation) {
         this.siteName = siteName;
         this.enabled = enabled;
         this.ipAddress = ipAddress;
@@ -81,6 +87,7 @@ public class Site extends AbstractPersistable<Long> {
         this.sendEmail = sendEmail;
         this.monitorHttp = monitorHttp;
         this.monitorSmtp = monitorSmtp;
+        this.applicationStatus = applicationStatus;
         this.organisation = organisation;
     }
 
@@ -203,6 +210,14 @@ public class Site extends AbstractPersistable<Long> {
         this.monitorSmtp = monitorSmtp;
     }
 
+    public List<ApplicationStatus> getApplicationStatus() {
+        return applicationStatus;
+    }
+
+    public void setApplicationStatus(List<ApplicationStatus> applicationStatus) {
+        this.applicationStatus = applicationStatus;
+    }
+
     @Override
     public String toString() {
         return "Site{" +
@@ -218,6 +233,7 @@ public class Site extends AbstractPersistable<Long> {
                 ", sendEmail=" + sendEmail +
                 ", monitorHttp=" + monitorHttp +
                 ", monitorSmtp=" + monitorSmtp +
+                ", applicationStatus=" + applicationStatus +
                 '}';
     }
 }

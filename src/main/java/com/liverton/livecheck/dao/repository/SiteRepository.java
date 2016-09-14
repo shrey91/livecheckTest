@@ -12,4 +12,6 @@ import java.util.List;
 public interface SiteRepository extends JpaRepository<Site, Long> {
 
     List<Site> findBySiteName(String siteName);
+
+//    List<Site> findBySite(Site site);
 }

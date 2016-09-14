@@ -1,5 +1,6 @@
 package com.liverton.livecheck.web.form;
 
+import com.liverton.livecheck.dao.model.ApplicationStatus;
 import com.liverton.livecheck.dao.model.Organisation;
 import com.liverton.livecheck.dao.model.SitePingResult;
 import com.liverton.livecheck.model.NotificationAction;
@@ -14,6 +15,9 @@ import java.util.List;
  */
 
 public class SiteModelForm {
+
+
+    private Long id;
 
     @NotEmpty(message = "Site name cannot be empty")
     private String siteName;
@@ -38,10 +42,11 @@ public class SiteModelForm {
 
     private String averageResponse;
 
-    private SitePingResult sitePingResult;
+//    private SitePingResult sitePingResult;
 
-    public SiteModelForm() {
-    }
+    private List<ApplicationStatus> applicationStatus;
+
+
 
     public String getSiteName() {
         return siteName;
@@ -124,47 +129,48 @@ public class SiteModelForm {
         this.averageResponse = averageResponse;
     }
 
-    public SitePingResult getSitePingResult() {
-        return sitePingResult;
+    public Long getId() {
+        return id;
     }
 
-    public void setSitePingResult(SitePingResult sitePingResult) {
-        this.sitePingResult = sitePingResult;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public SiteModelForm(String siteName, Boolean enabled, String ipAddress) {
-        this.siteName = siteName;
-        this.enabled = enabled;
-        this.ipAddress = ipAddress;
+    //    public SitePingResult getSitePingResult() {
+//        return sitePingResult;
+//    }
+//
+//    public void setSitePingResult(SitePingResult sitePingResult) {
+//        this.sitePingResult = sitePingResult;
+//    }
+
+    public List<ApplicationStatus> getApplicationStatus() {
+        return applicationStatus;
     }
 
-    public SiteModelForm(String siteName, String averageResponse, Organisation organisation, SiteState state) {
-        this.siteName = siteName;
-        this.averageResponse = averageResponse;
-        this.organisation = organisation;
-        this.state = state;
+    public void setApplicationStatus(List<ApplicationStatus> applicationStatus) {
+        this.applicationStatus = applicationStatus;
     }
 
-    public SiteModelForm(String siteName, Boolean enabled, String ipAddress, NotificationAction action, Organisation organisation, SiteState state, String averageResponse, SitePingResult sitePingResult) {
-        this.siteName = siteName;
-        this.enabled = enabled;
-        this.ipAddress = ipAddress;
-        this.action = action;
-        this.organisation = organisation;
-        this.state = state;
-        this.averageResponse = averageResponse;
-        this.sitePingResult = sitePingResult;
+    public SiteModelForm() {
     }
 
-    public SiteModelForm(String siteName, Boolean enabled, String ipAddress, SiteState state, String averageResponse) {
-        this.siteName = siteName;
-        this.enabled = enabled;
-        this.ipAddress = ipAddress;
-        this.state = state;
-        this.averageResponse = averageResponse;
-    }
+//    public SiteModelForm(String siteName, Boolean enabled, String ipAddress) {
+//        this.siteName = siteName;
+//        this.enabled = enabled;
+//        this.ipAddress = ipAddress;
+//    }
+//
+//    public SiteModelForm(String siteName, Boolean enabled, String ipAddress, SiteState state, String averageResponse) {
+//        this.siteName = siteName;
+//        this.enabled = enabled;
+//        this.ipAddress = ipAddress;
+//        this.state = state;
+//        this.averageResponse = averageResponse;
+//    }
 
-    public SiteModelForm(String siteName, Boolean enabled, String ipAddress, String pingTime, String smsDelay, NotificationAction action, String ping, Organisation organisation, SiteState state) {
+    public SiteModelForm(String siteName, Boolean enabled, String ipAddress, String pingTime, String smsDelay, NotificationAction action, String ping, List<ApplicationStatus> applicationStatus, Organisation organisation, SiteState state, String averageResponse,Long id) {
         this.siteName = siteName;
         this.enabled = enabled;
         this.ipAddress = ipAddress;
@@ -172,8 +178,11 @@ public class SiteModelForm {
         this.smsDelay = smsDelay;
         this.action = action;
         this.ping = ping;
+        this.applicationStatus = applicationStatus;
         this.organisation = organisation;
         this.state = state;
+        this.averageResponse = averageResponse;
+        this.id = id;
     }
 
     @Override
@@ -189,7 +198,7 @@ public class SiteModelForm {
                 ", organisation=" + organisation +
                 ", state=" + state +
                 ", averageResponse='" + averageResponse + '\'' +
-                ", sitePingResult=" + sitePingResult +
+//                ", sitePingResult=" + sitePingResult +
                 '}';
     }
 }

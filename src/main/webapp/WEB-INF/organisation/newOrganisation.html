@@ -42,6 +42,41 @@
                                                       placeholder="Description"/>
                                                 <!--<input type="text" class="form-control" th:field="*{description}" placeholder="Description" />-->
                                             </div>
+                                            <div class="form-group">
+                                                <label for="orgEmail">Host Email :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{fromEmail}"
+                                                       placeholder="Host Email address"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="orgToEmail">Recipient Email :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{toEmail}"
+                                                       placeholder="Recipient Email address"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="orgHost">Host Address:</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{host}"
+                                                       placeholder="Host Address"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="orgPort">Port Number :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{portNumber}"
+                                                       placeholder="Port Number"/>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="orgText">Recipient Numbers :</label>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" required="required" th:field="*{fromEmail}"
+                                                       placeholder="Please separate numbers with ;"/>
+                                            </div>
                                         </div>
                                         <div class="form-group" style="text-align: center">
                                             <input class="btn btn-default" type="submit" value="Submit"/>

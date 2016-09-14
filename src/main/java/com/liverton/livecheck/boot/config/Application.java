@@ -1,5 +1,6 @@
 package com.liverton.livecheck.boot.config;
 
+import com.liverton.livecheck.dao.model.Organisation;
 import com.liverton.livecheck.service.*;
 import com.liverton.livecheck.service.impl.*;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -54,6 +55,9 @@ public class Application {
         return new Integer(5);
     }
 
+
+    @Bean
+    public  ApplicationStatusService applicationStatusService(){return new ApplicationStatusServiceImpl();}
 
 
 }
