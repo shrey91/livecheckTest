@@ -3,7 +3,6 @@ package com.liverton.livecheck.service.impl;
 import com.liverton.livecheck.dao.model.*;
 import com.liverton.livecheck.dao.model.Site;
 import com.liverton.livecheck.dao.repository.ApplicationStatusRepository;
-import com.liverton.livecheck.dao.repository.OrganisationRepository;
 import com.liverton.livecheck.dao.repository.SiteRepository;
 import com.liverton.livecheck.dao.repository.SitePingResultRepository;
 import com.liverton.livecheck.model.ApplicationType;
@@ -11,8 +10,6 @@ import com.liverton.livecheck.model.NotificationAction;
 import com.liverton.livecheck.model.PingState;
 import com.liverton.livecheck.model.SiteState;
 import com.liverton.livecheck.service.SiteService;
-import com.liverton.livecheck.service.domain.*;
-import com.liverton.livecheck.web.form.OrganisationForm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +26,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.*;
 import java.lang.*;
-import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.net.*;
@@ -56,10 +52,6 @@ public class SiteServiceImpl implements SiteService {
 
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
-
-    @Autowired
-    private OrganisationRepository organisationRepository;
-
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
     private static final String AUTHORIZATION_KEY = "pHeJUYYg8r2JPjX2A.R6QDd7cUMlVTVhaS.UlM7xF.tFua_vJZhYejqrUsE1gJVNIZLrrA6SCYeZ";
@@ -141,9 +133,9 @@ public class SiteServiceImpl implements SiteService {
                     String ss = builder.toString();
 
                     String[] parts = ss.split("Average =");
-//                    LOGGER.info(ss);
+                    LOGGER.debug(ss);
                     String pingTime = parts[1].trim();
-//                    LOGGER.info(pingTime);
+                    LOGGER.debug(pingTime);
                     site.setAverageResponse(pingTime);
 
                     site.setAcknowledged(false);
@@ -188,20 +180,17 @@ public class SiteServiceImpl implements SiteService {
             try {
                 HttpResponse response = client.execute(request);
                 if (response.getStatusLine().getStatusCode() == 200) {
-//                site.setMonitorHttp(true);
                     return SiteState.OKAY;
                 }
             } catch (ConnectException e) {
-//            site.setMonitorHttp(false);
-//            LOGGER.info("Error " + e);
+            LOGGER.debug("Error " + e);
                 return SiteState.ERROR;
 
             } catch (IOException e) {
-//            site.setMonitorHttp(false);
-//            e.printStackTrace();
+
                 return SiteState.ERROR;
             } catch (Exception e) {
-//            LOGGER.info("Exception was " + e);
+            LOGGER.debug("Exception was " + e);
             }
         }
         return SiteState.ERROR;
@@ -224,16 +213,11 @@ public class SiteServiceImpl implements SiteService {
                 String sentence2 = inFromServer.readLine();
                 Matcher matcher = PATTERN_IP_ADDRESS.matcher(sentence2);
                 if (matcher.matches()) {
-//                site.setMonitorSmtp(true);
                     return SiteState.OKAY;
                 }
-//            modifiedSentence = inFromServer.readLine();
-//            System.out.println(modifiedSentence);
                 clientSocket.close();
 
             } catch (Exception e) {
-//            site.setMonitorSmtp(false);
-//            LOGGER.info("Could not reach site " + e);
                 return SiteState.ERROR;
             }
         }
@@ -250,8 +234,6 @@ public class SiteServiceImpl implements SiteService {
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(interceptors);
-//        List<String> numbers = new ArrayList<>();
-//        numbers.add("64212842309");
         try {
             for (Site site : repository.findAll()) {
                 if (!site.getSendEmail() && !site.getAcknowledged() && site.getEnabled()) {
@@ -293,13 +275,13 @@ public class SiteServiceImpl implements SiteService {
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
 
 
-//                            LOGGER.info(result.toString());
+                            LOGGER.debug(result.toString());
                         } else {
                             List<String> numbers = new ArrayList<>();
                             numbers.add(test);
                             MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
-//                            LOGGER.info(result.toString());
+                            LOGGER.debug(result.toString());
                         }
 
                     }
@@ -310,12 +292,6 @@ public class SiteServiceImpl implements SiteService {
         }
 
     }
-
-
-//    @PostConstruct
-//    public void init() {
-//        scanSites();
-//    }
 
 
     @Override
