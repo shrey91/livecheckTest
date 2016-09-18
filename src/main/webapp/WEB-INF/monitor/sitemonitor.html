@@ -117,17 +117,12 @@
                         $(document).find('div#refreshResponse').html(elementHtml);
                     });
 
-                }, 10000);
+                }, 5000);
 
                 $(document).on('click', '.flex-item-site', function (e) {
                     $('.flex-item-site').each(function (index, e) {
                         $(e).popover('hide');
                     });
-
-//**For speech synthesis of site names**//
-//                    var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text());
-//                    window.speechSynthesis.speak(msg);
-
 
 //                    console.log("hit 1" + e);
                     var id = e.currentTarget.id;
@@ -143,6 +138,16 @@
                     $(e.currentTarget).popover('show');
                 });
             });
+            if('error' in document){
+                $('error').each(function (index, e) {
+                    var id = e.currentTarget.id;
+                    var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + " is down");
+                    window.speechSynthesis.speak(msg);
+                })
+            //**For speech synthesis of site names**//
+            //                var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + "is down");
+            //                window.speechSynthesis.speak(msg);
+            }
 
         </script>
         <div th:replace="fragments/header :: footer"/>

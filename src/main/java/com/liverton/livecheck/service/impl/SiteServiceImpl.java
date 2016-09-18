@@ -1,5 +1,6 @@
 package com.liverton.livecheck.service.impl;
 
+import com.liverton.livecheck.boot.config.Application;
 import com.liverton.livecheck.dao.model.*;
 import com.liverton.livecheck.dao.model.Site;
 import com.liverton.livecheck.dao.repository.ApplicationStatusRepository;
@@ -10,6 +11,7 @@ import com.liverton.livecheck.model.NotificationAction;
 import com.liverton.livecheck.model.PingState;
 import com.liverton.livecheck.model.SiteState;
 import com.liverton.livecheck.service.SiteService;
+import org.apache.http.client.ClientProtocolException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.apache.http.HttpResponse;
@@ -57,6 +60,8 @@ public class SiteServiceImpl implements SiteService {
     private static final String AUTHORIZATION_KEY = "pHeJUYYg8r2JPjX2A.R6QDd7cUMlVTVhaS.UlM7xF.tFua_vJZhYejqrUsE1gJVNIZLrrA6SCYeZ";
     private static final String EHLO_COMMAND = "ehlo localhost";
     private static final Pattern PATTERN_IP_ADDRESS = Pattern.compile(".*\\[.*\\].*");
+    private static final Pattern PATTERN_FIND_AVERAGE = Pattern.compile(".*Average.*", Pattern.MULTILINE);
+    private static final Pattern PATTERN_FIND_TRY = Pattern.compile(".*try again.*");
 
 
     static {
@@ -64,103 +69,101 @@ public class SiteServiceImpl implements SiteService {
     }
 
 
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 * * * * *")
     public void scanSites() {
-//        Boolean keepRunning = true;
-//        while (keepRunning) {
-        SiteState pollState = null;
+        LOGGER.info("running scheduled site scan");
         for (Site site : repository.findAll()) {
             for (ApplicationStatus applicationStatus : site.getApplicationStatus()) {
                 if (applicationStatus.getEnabled()) {
                     if (site.getEnabled()) {
                         switch (applicationStatus.getApplicationType()) {
                             case PING:
-                                pollState = pingSite(site, applicationStatus);
+                                handleAndUpdateApplicationState(applicationStatus, pingSite(site));
                                 break;
                             case HTTP:
-
-                                pollState = pollHttp(site, applicationStatus);
+                                handleAndUpdateApplicationState(applicationStatus, pollHttp(site));
                                 break;
                             case SMTP:
-                                pollState = pollSmtp(site, applicationStatus);
+                                handleAndUpdateApplicationState(applicationStatus, pollSmtp(site));
                                 break;
                         }
-                        if (pollState == OKAY) {
-                            applicationStatus.setFailureCount(0);
-                            applicationStatus.setSiteState(OKAY);
-                        } else {
-                            applicationStatus.setFailureCount((applicationStatus.getFailureCount() != null) ? applicationStatus.getFailureCount() + 1 : 1);
-                            if (applicationStatus.getFailureCount() >= 5 && applicationStatus.getFailureCount() < 10) {
-                                applicationStatus.setSiteState(SiteState.WARNING);
-                            } else if (applicationStatus.getFailureCount() >= 10) {
-                                applicationStatus.setSiteState(SiteState.ERROR);
-                                if (applicationStatus.getApplicationType() == ApplicationType.PING) {
-                                    site.setSendEmail(false);
-                                }
-                            }
-                        }
-                        applicationStatusRepository.save(applicationStatus);
                     }
                 }
             }
         }
     }
 
-    private SiteState pingSite(Site site, ApplicationStatus applicationStatus) {
+    private void handleAndUpdateApplicationState(ApplicationStatus applicationStatus, SiteState state) {
+        if (OKAY.equals(state)) {
+            applicationStatus.setFailureCount(0);
+            applicationStatus.setSiteState(OKAY);
+        } else {
+            applicationStatus.setFailureCount((applicationStatus.getFailureCount() != null) ? applicationStatus.getFailureCount() + 1 : 1);
+            if (applicationStatus.getFailureCount() >= 5 && applicationStatus.getFailureCount() < 10) {
+                applicationStatus.setSiteState(SiteState.WARNING);
+            } else if (applicationStatus.getFailureCount() >= 10) {
+                applicationStatus.setSiteState(SiteState.ERROR);
+                if (applicationStatus.getApplicationType() == ApplicationType.PING) {
+
+                }
+            }
+        }
+        applicationStatusRepository.save(applicationStatus);
+    }
+
+    private SiteState pingSite(Site site) {
         try {
             if (site.getEnabled()) {
-                Process p1 = java.lang.Runtime.getRuntime().exec("ping " + site.getIpAddress());
+                Process p1 = java.lang.Runtime.getRuntime().exec("ping -n 1 " + site.getIpAddress());
                 int returnVal = p1.waitFor();
                 SitePingResult sitePingResult = new SitePingResult();
                 BufferedReader in = new BufferedReader(new InputStreamReader(p1.getInputStream()));
                 StringBuilder builder = new StringBuilder();
-                Pattern pattern = Pattern.compile(".*Average.*", Pattern.MULTILINE);
+
                 String line = null;
                 while ((line = in.readLine()) != null) {
                     builder.append(line);
                     builder.append("\n");
                 }
                 String resultping = builder.toString();
-                String[] results = resultping.split("Packets: ");
-                String pingstats = results[1].trim();
-                sitePingResult.setResponseTime(pingstats);
-                sitePingResult.setDate(new Date());
-                sitePingResult.setSite(site);
-                p1.waitFor();
-                Matcher matcher = pattern.matcher(resultping);
-                if (matcher.find() && returnVal == 0) {
-
-                    String ss = builder.toString();
-
-                    String[] parts = ss.split("Average =");
-                    LOGGER.debug(ss);
-                    String pingTime = parts[1].trim();
-                    LOGGER.debug(pingTime);
-                    site.setAverageResponse(pingTime);
-
-                    site.setAcknowledged(false);
-                    sitePingResult.setPingState(PingState.YES);
-                    site.setState(SiteState.OKAY);
-                    if (!site.getEnabled()) {
-                        site.setState(SiteState.DISABLED);
-                    }
+                Matcher matcher2 = PATTERN_FIND_TRY.matcher(resultping);
+                if (matcher2.find()) {
+                    failedPing(site, sitePingResult);
                 } else {
-                    site.setFailureCount((site.getFailureCount() != null) ? site.getFailureCount() + 1 : 1);
-                    site.setAverageResponse("N/A");
-                    sitePingResult.setPingState(PingState.NO);
-                    if (site.getFailureCount() >= 5 && site.getFailureCount() < 10) {
-                        site.setState(SiteState.WARNING);
-                    } else if (site.getFailureCount() >= 10) {
-                        site.setState(SiteState.ERROR);
+                    String[] results = resultping.split("Packets: ");
+                    String pingstats = results[1].trim();
+                    sitePingResult.setResponseTime(pingstats);
+                    sitePingResult.setDate(new Date());
+                    sitePingResult.setSite(site);
+                    p1.waitFor();
+                    Matcher matcher = PATTERN_FIND_AVERAGE.matcher(resultping);
+                    if (matcher.find() && returnVal == 0) {
 
+                        String ss = builder.toString();
+
+                        String[] parts = ss.split("Average =");
+                        LOGGER.debug(ss);
+                        String pingTime = parts[1].trim();
+                        LOGGER.debug(pingTime);
+                        site.setAverageResponse(pingTime);
+
+                        site.setAcknowledged(false);
+                        sitePingResult.setPingState(PingState.YES);
+                        site.setState(SiteState.OKAY);
+                        site.setFailureCount(0);
+                        site.setSendNotification(false);
+                        if (!site.getEnabled()) {
+                            site.setState(SiteState.DISABLED);
+                        }
                     } else {
-                        LOGGER.info("Site with name :{} has failed with count :{}", site.getSiteName(), site.getFailureCount());
+                        failedPing(site, sitePingResult);
                     }
                 }
                 sitePingResultRepository.save(sitePingResult);
                 repository.save(site);
                 return returnVal == 0 ? SiteState.OKAY : SiteState.ERROR;
             }
+
         } catch (UnknownHostException e) {
             LOGGER.error(e.getMessage(), e);
         } catch (IOException e) {
@@ -168,10 +171,10 @@ public class SiteServiceImpl implements SiteService {
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage(), e);
         }
-        return applicationStatus.getSiteState();
+        return SiteState.ERROR;
     }
 
-    private SiteState pollHttp(Site site, ApplicationStatus applicationStatus) {
+    private SiteState pollHttp(Site site) {
         String url = "http://" + site.getIpAddress();
 
         HttpClient client = new DefaultHttpClient();
@@ -179,53 +182,55 @@ public class SiteServiceImpl implements SiteService {
         if (site.getEnabled()) {
             try {
                 HttpResponse response = client.execute(request);
-                if (response.getStatusLine().getStatusCode() == 200) {
+                if (response.getStatusLine().getStatusCode() > 0) {
+                    LOGGER.info("Received response from {} , with status code ({})", site.getSiteName(), response.getStatusLine().getStatusCode());
                     return SiteState.OKAY;
                 }
             } catch (ConnectException e) {
-            LOGGER.debug("Error " + e);
-                return SiteState.ERROR;
-
+                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
+            } catch (ClientProtocolException e) {
+                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
             } catch (IOException e) {
-
-                return SiteState.ERROR;
-            } catch (Exception e) {
-            LOGGER.debug("Exception was " + e);
+                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
             }
         }
         return SiteState.ERROR;
     }
 
-    private SiteState pollSmtp(Site site, ApplicationStatus applicationStatus) {
-        BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+    private SiteState pollSmtp(Site site) {
         if (site.getEnabled()) {
             try {
                 Socket clientSocket = new Socket("earth.liverton.local", 25);
-                clientSocket.setSoTimeout(5000);
+                clientSocket.setSoTimeout(1000);
+                LOGGER.info("{} Did not time out", site.getSiteName());
                 BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-
-
-                String sentence = inFromServer.readLine();
                 bufferedWriter.write(EHLO_COMMAND);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
-                String sentence2 = inFromServer.readLine();
+                StringBuilder builder = new StringBuilder();
+                String line = null;
+                for (int i = 0; i < 3; i++) {
+                    line = inFromServer.readLine();
+                    builder.append(line);
+                    builder.append("\n");
+                }
+                String sentence2 = builder.toString();
                 Matcher matcher = PATTERN_IP_ADDRESS.matcher(sentence2);
-                if (matcher.matches()) {
+                if (matcher.find()) {
                     return SiteState.OKAY;
                 }
                 clientSocket.close();
 
             } catch (Exception e) {
-                return SiteState.ERROR;
+                LOGGER.error("Unable to poll site ({}) for smtp - error {}", site.getSiteName(), e.getMessage());
             }
         }
         return SiteState.ERROR;
     }
 
 
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0/30 * * * * *")
     public void sendEmail() {
         MimeMessage mailMessage = javaMailSender.createMimeMessage();
         List<ClientHttpRequestInterceptor> interceptors = new ArrayList<ClientHttpRequestInterceptor>();
@@ -236,10 +241,8 @@ public class SiteServiceImpl implements SiteService {
         restTemplate.setInterceptors(interceptors);
         try {
             for (Site site : repository.findAll()) {
-                if (!site.getSendEmail() && !site.getAcknowledged() && site.getEnabled()) {
-                    if (site.getState() == SiteState.ERROR) {
-                        site.getOrganisation();
-
+                if (!site.getAcknowledged() && site.getEnabled()) {
+                    if (SiteState.ERROR.equals(site.getState()) && !site.getSendNotification()) {
                         String test = site.getOrganisation().getTextDestination();
 
                         //**Multiple Email options to implement**//
@@ -267,13 +270,14 @@ public class SiteServiceImpl implements SiteService {
                                         + site.getFailureCount()
                                         + " times.");
                         javaMailSender.send(mailMessage);
-                        site.setSendEmail(true);
+
                         if (test.contains(";")) {
                             List<String> numbers2 = Arrays.asList(test.split("\\s*;\\s*"));
 
                             MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers2);
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
-
+                            site.setSendNotification(true);
+                            repository.save(site);
 
                             LOGGER.debug(result.toString());
                         } else {
@@ -282,11 +286,14 @@ public class SiteServiceImpl implements SiteService {
                             MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
                             LOGGER.debug(result.toString());
+                            site.setSendNotification(true);
+                            repository.save(site);
                         }
 
                     }
                 }
             }
+
         } catch (MessagingException e) {
             LOGGER.error(e.getMessage(), e);
         }
@@ -309,5 +316,22 @@ public class SiteServiceImpl implements SiteService {
         site.setApplicationStatus(applicationStatusList);
         repository.save(site);
         return site;
+    }
+
+    private void failedPing(Site site, SitePingResult sitePingResult) {
+
+        site.setFailureCount((site.getFailureCount() != null) ? site.getFailureCount() + 1 : 1);
+        site.setAverageResponse("N/A");
+        sitePingResult.setPingState(PingState.NO);
+        sitePingResult.setDate(new Date());
+        sitePingResult.setResponseTime("Did not respond");
+        if (site.getFailureCount() >= 5 && site.getFailureCount() < 10) {
+            site.setState(SiteState.WARNING);
+        } else if (site.getFailureCount() >= 10) {
+            site.setState(SiteState.ERROR);
+
+        } else {
+            LOGGER.info("Site with name :{} has failed with count :{}", site.getSiteName(), site.getFailureCount());
+        }
     }
 }

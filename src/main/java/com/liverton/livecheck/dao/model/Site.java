@@ -47,7 +47,7 @@ public class Site extends AbstractPersistable<Long> {
     private String averageResponse;
 
     @Column(nullable = false)
-    private Boolean sendEmail;
+    private Boolean sendNotification;
 
     @Column(nullable = false)
     private Boolean monitorHttp;
@@ -74,7 +74,7 @@ public class Site extends AbstractPersistable<Long> {
 
     }
 
-    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendEmail, Boolean monitorHttp, Boolean monitorSmtp,List<ApplicationStatus> applicationStatus, Organisation organisation) {
+    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendNotification, Boolean monitorHttp, Boolean monitorSmtp,List<ApplicationStatus> applicationStatus, Organisation organisation) {
         this.siteName = siteName;
         this.enabled = enabled;
         this.ipAddress = ipAddress;
@@ -84,7 +84,7 @@ public class Site extends AbstractPersistable<Long> {
         this.action = action;
         this.failureCount = failureCount;
         this.averageResponse = averageResponse;
-        this.sendEmail = sendEmail;
+        this.sendNotification = sendNotification;
         this.monitorHttp = monitorHttp;
         this.monitorSmtp = monitorSmtp;
         this.applicationStatus = applicationStatus;
@@ -92,12 +92,12 @@ public class Site extends AbstractPersistable<Long> {
     }
 
 
-    public Boolean getSendEmail() {
-        return sendEmail;
+    public Boolean getSendNotification() {
+        return sendNotification;
     }
 
-    public void setSendEmail(Boolean sendEmail) {
-        this.sendEmail = sendEmail;
+    public void setSendNotification(Boolean sendEmail) {
+        this.sendNotification = sendEmail;
     }
 
     public String getSiteName() {
@@ -230,7 +230,7 @@ public class Site extends AbstractPersistable<Long> {
                 ", action=" + action +
                 ", failureCount=" + failureCount +
                 ", averageResponse='" + averageResponse + '\'' +
-                ", sendEmail=" + sendEmail +
+                ", sendNotification=" + sendNotification +
                 ", monitorHttp=" + monitorHttp +
                 ", monitorSmtp=" + monitorSmtp +
                 ", applicationStatus=" + applicationStatus +
