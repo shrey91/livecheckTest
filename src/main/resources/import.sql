@@ -1,0 +1,1 @@
+INSERT INTO user(id, name, password, userEnabled) VALUES(1, 'admin', '$2a$10$p4CvNvp4C//tOtAs6zoA1.G6Dp1qlWP9NkxBgj5YUn67MYXMrsqcq', TRUE);
