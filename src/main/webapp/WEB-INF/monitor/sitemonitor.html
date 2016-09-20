@@ -47,7 +47,7 @@
                                                  th:if="${site.state == T(com.liverton.livecheck.model.SiteState).WARNING}">
                                                 <div>
                                                     <!--WARNING-->
-                                                    <p class="p-siteMonitor" th:text="${site.siteName}"></p>
+                                                    <p class="p-site-name p-siteMonitor" th:text="${site.siteName}"></p>
 
                                                     <div class="popover-layout" data-content="popover-content"
                                                          style="display: none"
@@ -65,7 +65,7 @@
                                                  th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ERROR}">
                                                 <div>
                                                     <!--ERROR-->
-                                                    <p class="p-siteMonitor" th:text="${site.siteName}"></p>
+                                                    <p class="p-site-name p-siteMonitor" th:text="${site.siteName}"></p>
 
                                                     <div class="popover-layout" data-content="popover-content"
                                                          style="display: none"
@@ -104,10 +104,10 @@
         <script type="text/javascript">
 
             $(document).ready(function () {
-                console.log('ready');
+//                console.log('ready');
 
                 setInterval(function () {
-                    console.log('hello');
+//                    console.log('hello');
                     $.ajax({
                         url: '/siteMonitor',
                         cache: false
@@ -116,38 +116,57 @@
                         var elementHtml = element.html();
                         $(document).find('div#refreshResponse').html(elementHtml);
                     });
-
                 }, 5000);
+            });
 
-                $(document).on('click', '.flex-item-site', function (e) {
-                    $('.flex-item-site').each(function (index, e) {
-                        $(e).popover('hide');
-                    });
+            setInterval(function () {
+//                console.log("error");
+//                var speech = false;
+                $('.error').each(function (index, e) {
+                    var errors = [$('.error')];
+                    var element = $(e);
+
+                    if (errors.length > 5) {
+//                            if (element.speech = false) {
+                        var msg = new SpeechSynthesisUtterance("Multiple sites are down");
+                        window.speechSynthesis.speak(msg);
+//                        element.speech = true;
+//                            }
+                    }
+                    else {
+//                            if(element.speech = false){
+                        var msg = new SpeechSynthesisUtterance(element.find('.p-site-name').text() + " is down");
+                        window.speechSynthesis.speak(msg);
+//                        element.speech = true;
+//                        }
+                    }
+                });
+            }, 15000);
+
+            $(document).on('click', '.flex-item-site', function (e) {
+                $('.flex-item-site').each(function (index, e) {
+                    $(e).popover('hide');
+                });
 
 //                    console.log("hit 1" + e);
-                    var id = e.currentTarget.id;
-                    var content = $('#details-' + id);
+                var id = e.currentTarget.id;
+                var content = $('#details-' + id);
 //                    console.log("content" + content);
 
-                    $(e.currentTarget).popover({
-                        content: $(content).html(),
-                        html: true,
-                        animation: true,
-                        placement: 'bottom'
-                    });
-                    $(e.currentTarget).popover('show');
+                $(e.currentTarget).popover({
+                    content: $(content).html(),
+                    html: true,
+                    animation: true,
+                    placement: 'bottom'
                 });
+                $(e.currentTarget).popover('show');
             });
-            if('error' in document){
-                $('error').each(function (index, e) {
-                    var id = e.currentTarget.id;
-                    var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + " is down");
-                    window.speechSynthesis.speak(msg);
-                })
+
+
             //**For speech synthesis of site names**//
             //                var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + "is down");
             //                window.speechSynthesis.speak(msg);
-            }
+            //            }
 
         </script>
         <div th:replace="fragments/header :: footer"/>

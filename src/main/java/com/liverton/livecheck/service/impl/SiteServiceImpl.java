@@ -218,6 +218,7 @@ public class SiteServiceImpl implements SiteService {
                 String sentence2 = builder.toString();
                 Matcher matcher = PATTERN_IP_ADDRESS.matcher(sentence2);
                 if (matcher.find()) {
+
                     return SiteState.OKAY;
                 }
                 clientSocket.close();
@@ -279,13 +280,13 @@ public class SiteServiceImpl implements SiteService {
                             site.setSendNotification(true);
                             repository.save(site);
 
-                            LOGGER.debug(result.toString());
+//                            LOGGER.debug(result.toString());
                         } else {
                             List<String> numbers = new ArrayList<>();
                             numbers.add(test);
                             MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
-                            LOGGER.debug(result.toString());
+//                            LOGGER.debug(result.toString());
                             site.setSendNotification(true);
                             repository.save(site);
                         }
