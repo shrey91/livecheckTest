@@ -26,10 +26,6 @@ public class SitePingResultServiceImpl implements SitePingResultService {
     }
 
 
-
-
-
-
     @Override
     public List<SitePingResult> findByDate() {
         return sitePingResultRepository.findAll();

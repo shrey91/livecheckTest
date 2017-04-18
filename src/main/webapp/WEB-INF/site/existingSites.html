@@ -1,119 +1,142 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org">
-    <head>
-        <meta http-equiv="content-type" charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>Existing Sites </title>
-        <object th:include="fragments/head :: head" th:remove="tag"/>
-    </head>
-    <body>
-        <div id="wrapper">
-            <div th:replace="fragments/header :: sidebar"/>
-            <div id="page-content-wrapper">
-                <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
-                    <span class="hamb-top"></span>
-                    <span class="hamb-middle"></span>
-                    <span class="hamb-bottom"></span>
-                </button>
-                <div class="container-fluid" style="margin-top: 70px">
+<head>
+    <meta http-equiv="content-type" charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Existing Sites </title>
+    <object th:include="fragments/head :: head" th:remove="tag"/>
+</head>
+<body>
+<div id="wrapper">
+    <div th:replace="fragments/header :: sidebar"/>
+    <div id="page-content-wrapper">
+        <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
+            <span class="hamb-top"></span>
+            <span class="hamb-middle"></span>
+            <span class="hamb-bottom"></span>
+        </button>
+        <div class="container-fluid" style="margin-top: 70px">
+            <div class="row">
+                <h2>Sites on Record </h2>
+                <div class="col-lg-12 col-md-6 col-sm-4">
                     <div class="row">
-                        <h2>Sites on Record </h2>
-                        <div class="col-lg-12 col-md-6 col-sm-4">
-                            <div class="row">
-                                <div class="flex-container col-lg-12 col-md-3 col-sm-6">
+                        <div class="flex-container col-lg-12 col-md-3 col-sm-6">
 
-                                    <table class="table table-hover table-bordered container col-med-12">
-                                        <thead>
-                                            <tr class="flex-item">
-                                                <th>Site Name</th>
-                                                <th>IP Address</th>
-                                                <th>Enabled</th>
-                                                <th>HTTP Status</th>
-                                                <th>SMTP Status</th>
-                                                <th>Average Response</th>
-                                                <th>Site Status</th>
-                                                <th sec:authorize="hasRole('ROLE_ADMIN')">Edit</th>
-                                                <th>Ping Results</th>
-                                                <th sec:authorize="hasRole('ROLE_ADMIN')">Enable/Disable</th>
-                                                <th sec:authorize="hasRole('ROLE_ADMIN')">Acknowledge Site</th>
-                                                <th sec:authorize="hasRole('ROLE_ADMIN')">Delete</th>
+                            <table class="table table-hover table-bordered container col-med-12">
+                                <thead>
+                                <tr class="flex-item">
+                                    <th>Site Name</th>
+                                    <th>IP Address</th>
+                                    <th>Enabled</th>
+                                    <th>HTTP Status</th>
+                                    <th>SMTP Status</th>
+                                    <th>Average Response</th>
+                                    <th>Site Status</th>
+                                    <th sec:authorize="hasRole('ROLE_ADMIN')">Edit</th>
+                                    <th>Ping Results</th>
+                                    <th sec:authorize="hasRole('ROLE_ADMIN')">Enable/Disable</th>
+                                    <th sec:authorize="hasRole('ROLE_ADMIN')">Acknowledge Site</th>
+                                    <th sec:authorize="hasRole('ROLE_ADMIN')">Delete</th>
 
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <div class="flex-container" th:each="site : ${existingSite}">
-                                                <tr class="flex-item">
-                                                    <td th:text="${site.siteName}"></td>
-                                                    <td th:text="${site.ipAddress}"></td>
-                                                    <td th:text="${site.enabled}"></td>
-                                                    <td th:text="${site.monitorHttp}"></td>
-                                                    <td th:text="${site.monitorSmtp}"></td>
-                                                    <td id="refeshResponse" th:text="${site.averageResponse}"></td>
-                                                    <td><span
-                                                            th:if="${site.state == T(com.liverton.livecheck.model.SiteState).OKAY}"
-                                                            class="okay" th:text="${site.state}"></span>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <div class="flex-container" th:each="site : ${existingSite}">
+                                    <tr class="flex-item">
+                                        <td th:text="${site.siteName}"></td>
+                                        <td th:text="${site.ipAddress}"></td>
+                                        <td th:text="${site.enabled}"></td>
+                                        <td th:text="${site.getApplicationStatusWithType(T(com.liverton.livecheck.model.ApplicationType).HTTP)}"></td>
+                                        <td th:text="${site.getApplicationStatusWithType(T(com.liverton.livecheck.model.ApplicationType).SMTP)}"></td>
+                                        <td id="refeshResponse" th:text="${site.averageResponse}"></td>
+                                        <td><span
+                                                th:if="${site.state == T(com.liverton.livecheck.model.SiteState).OKAY}"
+                                                class="okay" th:text="${site.state}"></span>
                                             <span th:if="${site.state == T(com.liverton.livecheck.model.SiteState).WARNING}"
                                                   class="warning" th:text="${site.state}"></span>
                                             <span th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ERROR}"
                                                   class="error " th:text="${site.state}"></span>
-                                                        <span th:if="${site.state == T(com.liverton.livecheck.model.SiteState).DISABLED}"
-                                                               class="disabled " th:text="${site.state}"></span>
+                                            <span th:if="${site.state == T(com.liverton.livecheck.model.SiteState).DISABLED}"
+                                                  class="disabled " th:text="${site.state}"></span>
+                                            <span th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ACKNOWLEDGED}"
+                                                  class="acknowledged " th:text="${site.state}"></span>
 
-                                                    </td>
-                                                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                        </td>
+                                        <td sec:authorize="hasRole('ROLE_ADMIN')">
 
-                                                        <a th:href="@{/editSite(id=${site.id})}"
-                                                           class="btn btn-default "><i class="fa fa-cog"></i>&nbsp; Edit</a>
-                                                    </td>
-                                                    <td>
-                                                        <a th:href="@{/viewPingResult(id=${site.id})}"
-                                                           class="btn btn-info"
-                                                           th:attr="data-site-id=${site.id}">
-                                                            <i class="fa fa-book fa-fw" aria-hidden="true"></i>&nbsp;
-                                                            View Result</a>
-                                                    </td>
-                                                    <td sec:authorize="hasRole('ROLE_ADMIN')">
-                                                        <a class="btn btn-danger" th:if="${site.enabled == true}"
-                                                           th:href="@{/siteDisable(id=${site.id})}"><i class="fa fa-times" aria-hidden="true"></i>&nbsp; Disable</a>
-                                                        <a class="btn btn-success" th:if="${site.enabled == false}"
-                                                           th:href="@{/siteEnable(id=${site.id})}"><i class="fa fa-check" aria-hidden="true"></i>&nbsp; Enable</a>
-                                                    </td>
-                                                    <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                            <a th:href="@{/editSite(id=${site.id})}"
+                                               class="btn btn-default "><i class="fa fa-cog"></i>&nbsp; Edit</a>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/viewPingResult(id=${site.id})}"
+                                               class="btn btn-info"
+                                               th:attr="data-site-id=${site.id}">
+                                                <i class="fa fa-book fa-fw" aria-hidden="true"></i>&nbsp;
+                                                View Result</a>
+                                        </td>
+                                        <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                            <a class="btn btn-danger" th:if="${site.enabled == true}"
+                                               th:href="@{/siteDisable(id=${site.id})}"><i class="fa fa-times"
+                                                                                           aria-hidden="true"></i>&nbsp;
+                                                Disable</a>
+                                            <a class="btn btn-success" th:if="${site.enabled == false}"
+                                               th:href="@{/siteEnable(id=${site.id})}"><i class="fa fa-check"
+                                                                                          aria-hidden="true"></i>&nbsp;
+                                                Enable</a>
+                                        </td>
+                                        <td sec:authorize="hasRole('ROLE_ADMIN')">
                                                 <span>
                                                 <a class="btn btn-primary"
                                                    th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ERROR}"
-                                                   th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
-                                                        <span><a class="btn btn-primary "
-                                                                 th:if="${site.state == T(com.liverton.livecheck.model.SiteState).WARNING}"
-                                                                 disabled="disabled"
-                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
-                                                        <span><a class="btn btn-primary "
-                                                                 th:if="${site.state == T(com.liverton.livecheck.model.SiteState).OKAY}"
-                                                                 disabled="disabled"
-                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
-                                                        <span><a class="btn btn-primary "
-                                                                 th:if="${site.state == T(com.liverton.livecheck.model.SiteState).DISABLED}"
-                                                                 disabled="disabled"
-                                                                 th:href="@{/acknowledgeSite(id=${site.id})}"><i class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp; Acknowledge</a></span>
-                                                    </td>
-                                                    <td sec:authorize="hasRole('ROLE_ADMIN')">
-                                                        <a class="btn btn-danger"
-                                                           th:href="@{/deleteSite(id=${site.id})}"><i
-                                                                class="fa fa-trash-o fa-lg"></i>&nbsp; Delete</a>
-                                                    </td>
-                                                </tr>
-                                            </div>
-                                        </tbody>
-                                    </table>
+                                                   th:href="@{/acknowledgeSite(id=${site.id})}"><i
+                                                        class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;
+                                                    Acknowledge</a></span>
+                                                <span>
+                                                    <a class="btn btn-primary "
+                                                       th:if="${site.state == T(com.liverton.livecheck.model.SiteState).WARNING}"
+                                                       disabled="disabled"
+                                                       th:href="@{/acknowledgeSite(id=${site.id})}"><i
+                                                            class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;
+                                                        Acknowledge</a></span>
+                                                <span>
+                                                    <a class="btn btn-primary "
+                                                       th:if="${site.state == T(com.liverton.livecheck.model.SiteState).OKAY}"
+                                                       disabled="disabled"
+                                                       ><i
+                                                            class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;
+                                                        Acknowledge</a></span>
+                                                <span>
+                                                    <a class="btn btn-primary "
+                                                       th:if="${site.state == T(com.liverton.livecheck.model.SiteState).DISABLED}"
+                                                       disabled="disabled"
+                                                       th:href="@{/acknowledgeSite(id=${site.id})}"><i
+                                                            class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;
+                                                        Acknowledge</a></span>
+                                               <span>
+                                                   <a class="btn btn-primary "
+                                                      th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ACKNOWLEDGED}"
+                                                      th:href="@{/unacknowledgeSite(id=${site.id})}"><i
+                                                           class="fa fa-thumbs-up" aria-hidden="true"></i>&nbsp;
+                                                       UnAcknowledge</a></span>
+                                        </td>
+                                        <td sec:authorize="hasRole('ROLE_ADMIN')">
+                                            <a class="btn btn-danger"
+                                               th:href="@{/deleteSite(id=${site.id})}"><i
+                                                    class="fa fa-trash-o fa-lg"></i>&nbsp; Delete</a>
+                                        </td>
+                                    </tr>
                                 </div>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-
             </div>
-            <div th:replace="fragments/header :: footer"/>
         </div>
-    </body>
+
+    </div>
+    <div th:replace="fragments/header :: footer"/>
+</div>
+</body>
 
 </html>

@@ -1,6 +1,7 @@
 package com.liverton.livecheck.dao.model;
 
 import com.liverton.livecheck.boot.config.Application;
+import com.liverton.livecheck.model.ApplicationType;
 import com.liverton.livecheck.model.NotificationAction;
 import com.liverton.livecheck.model.SiteState;
 import org.hibernate.annotations.*;
@@ -49,18 +50,11 @@ public class Site extends AbstractPersistable<Long> {
     @Column(nullable = false)
     private Boolean sendNotification;
 
-    @Column(nullable = false)
-    private Boolean monitorHttp;
-
-    @Column(nullable = false)
-    private Boolean monitorSmtp;
-
-
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Organisation_id", nullable = false)
     private Organisation organisation;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "site")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "site")
     @Fetch(FetchMode.SELECT)
     @Cascade(value = CascadeType.ALL)
     private List<SitePingResult> sitePingResults = new ArrayList<>();
@@ -74,7 +68,7 @@ public class Site extends AbstractPersistable<Long> {
 
     }
 
-    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendNotification, Boolean monitorHttp, Boolean monitorSmtp,List<ApplicationStatus> applicationStatus, Organisation organisation) {
+    public Site(String siteName, Boolean enabled, String ipAddress, Date date, SiteState state, Boolean isAcknowledged, NotificationAction action, Integer failureCount, String averageResponse, Boolean sendNotification, Boolean monitorHttp, Boolean monitorSmtp, List<ApplicationStatus> applicationStatus, Organisation organisation) {
         this.siteName = siteName;
         this.enabled = enabled;
         this.ipAddress = ipAddress;
@@ -85,8 +79,6 @@ public class Site extends AbstractPersistable<Long> {
         this.failureCount = failureCount;
         this.averageResponse = averageResponse;
         this.sendNotification = sendNotification;
-        this.monitorHttp = monitorHttp;
-        this.monitorSmtp = monitorSmtp;
         this.applicationStatus = applicationStatus;
         this.organisation = organisation;
     }
@@ -194,22 +186,6 @@ public class Site extends AbstractPersistable<Long> {
         sitePingResults.add(sitePingResult);
     }
 
-    public Boolean getMonitorHttp() {
-        return monitorHttp;
-    }
-
-    public void setMonitorHttp(Boolean monitorHttp) {
-        this.monitorHttp = monitorHttp;
-    }
-
-    public Boolean getMonitorSmtp() {
-        return monitorSmtp;
-    }
-
-    public void setMonitorSmtp(Boolean monitorSmtp) {
-        this.monitorSmtp = monitorSmtp;
-    }
-
     public List<ApplicationStatus> getApplicationStatus() {
         return applicationStatus;
     }
@@ -217,6 +193,16 @@ public class Site extends AbstractPersistable<Long> {
     public void setApplicationStatus(List<ApplicationStatus> applicationStatus) {
         this.applicationStatus = applicationStatus;
     }
+
+    public Boolean getApplicationStatusWithType(ApplicationType applicationType) {
+        for (ApplicationStatus applicationStatus2 : applicationStatus) {
+            if (applicationStatus2.getApplicationType().equals(applicationType)) {
+                return applicationStatus2.getEnabled();
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public String toString() {
@@ -231,9 +217,8 @@ public class Site extends AbstractPersistable<Long> {
                 ", failureCount=" + failureCount +
                 ", averageResponse='" + averageResponse + '\'' +
                 ", sendNotification=" + sendNotification +
-                ", monitorHttp=" + monitorHttp +
-                ", monitorSmtp=" + monitorSmtp +
-                ", applicationStatus=" + applicationStatus +
                 '}';
     }
+
+
 }

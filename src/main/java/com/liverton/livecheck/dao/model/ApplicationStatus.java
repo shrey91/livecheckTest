@@ -93,7 +93,6 @@ public class ApplicationStatus extends AbstractPersistable<Long> {
                 ", siteState=" + siteState +
                 ", enabled=" + enabled +
                 ", failureCount=" + failureCount +
-                ", site=" + site +
                 '}';
     }
 }

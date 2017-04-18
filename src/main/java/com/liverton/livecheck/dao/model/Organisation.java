@@ -1,11 +1,8 @@
 package com.liverton.livecheck.dao.model;
 
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
+import org.hibernate.annotations.*;
 import org.springframework.data.jpa.domain.AbstractPersistable;
-
+import javax.persistence.OrderBy;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -43,7 +40,8 @@ public class Organisation extends AbstractPersistable<Long> {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "organisation")
     @Fetch(FetchMode.SELECT)
     @Cascade(value = CascadeType.ALL)
-    private List<Site> sites = new ArrayList<>();
+    @OrderBy("siteName")
+       private List<Site> sites = new ArrayList<>();
 
     public List<Site> getSites() {
         return this.sites = sites;

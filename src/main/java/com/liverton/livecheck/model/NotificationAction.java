@@ -5,5 +5,5 @@ package com.liverton.livecheck.model;
  */
 public enum NotificationAction {
 
-    TEXT_MESSAGE, EMAIL;
+    TEXT_MESSAGE, EMAIL, TEXT_AND_EMAIL;
 }

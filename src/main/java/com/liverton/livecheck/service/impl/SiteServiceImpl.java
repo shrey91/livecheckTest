@@ -36,6 +36,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.liverton.livecheck.model.SiteState.ACKNOWLEDGED;
 import static com.liverton.livecheck.model.SiteState.OKAY;
 
 /**
@@ -72,7 +73,8 @@ public class SiteServiceImpl implements SiteService {
     @Scheduled(cron = "0 * * * * *")
     public void scanSites() {
         LOGGER.info("running scheduled site scan");
-        for (Site site : repository.findAll()) {
+
+        repository.findAll().parallelStream().forEach(site -> {
             for (ApplicationStatus applicationStatus : site.getApplicationStatus()) {
                 if (applicationStatus.getEnabled()) {
                     if (site.getEnabled()) {
@@ -90,18 +92,20 @@ public class SiteServiceImpl implements SiteService {
                     }
                 }
             }
-        }
+        });
     }
 
     private void handleAndUpdateApplicationState(ApplicationStatus applicationStatus, SiteState state) {
         if (OKAY.equals(state)) {
             applicationStatus.setFailureCount(0);
             applicationStatus.setSiteState(OKAY);
+        } else if (ACKNOWLEDGED.equals(state)) {
+            applicationStatus.setSiteState(ACKNOWLEDGED);
         } else {
             applicationStatus.setFailureCount((applicationStatus.getFailureCount() != null) ? applicationStatus.getFailureCount() + 1 : 1);
-            if (applicationStatus.getFailureCount() >= 5 && applicationStatus.getFailureCount() < 10) {
+            if (applicationStatus.getFailureCount() >= 3 && applicationStatus.getFailureCount() < 5) {
                 applicationStatus.setSiteState(SiteState.WARNING);
-            } else if (applicationStatus.getFailureCount() >= 10) {
+            } else if (applicationStatus.getFailureCount() >= 5) {
                 applicationStatus.setSiteState(SiteState.ERROR);
                 if (applicationStatus.getApplicationType() == ApplicationType.PING) {
 
@@ -176,55 +180,58 @@ public class SiteServiceImpl implements SiteService {
 
     private SiteState pollHttp(Site site) {
         String url = "http://" + site.getIpAddress();
-
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet(url);
-        if (site.getEnabled()) {
-            try {
-                HttpResponse response = client.execute(request);
-                if (response.getStatusLine().getStatusCode() > 0) {
-                    LOGGER.info("Received response from {} , with status code ({})", site.getSiteName(), response.getStatusLine().getStatusCode());
-                    return SiteState.OKAY;
+        if (site.getApplicationStatus().get(1).getApplicationType() == ApplicationType.HTTP && site.getApplicationStatus().get(1).getEnabled()) {
+            if (site.getEnabled()) {
+                try {
+                    HttpResponse response = client.execute(request);
+                    if (response.getStatusLine().getStatusCode() > 0) {
+                        LOGGER.info("Received response from {} , with status code ({})", site.getSiteName(), response.getStatusLine().getStatusCode());
+                        return SiteState.OKAY;
+                    }
+                } catch (ConnectException e) {
+                    LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
+                } catch (ClientProtocolException e) {
+                    LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
+                } catch (IOException e) {
+                    LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
                 }
-            } catch (ConnectException e) {
-                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
-            } catch (ClientProtocolException e) {
-                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
-            } catch (IOException e) {
-                LOGGER.error("Unable to poll site ({}) for http - error {}", site.getSiteName(), e.getMessage());
             }
         }
         return SiteState.ERROR;
     }
 
     private SiteState pollSmtp(Site site) {
-        if (site.getEnabled()) {
-            try {
-                Socket clientSocket = new Socket("earth.liverton.local", 25);
-                clientSocket.setSoTimeout(1000);
-                LOGGER.info("{} Did not time out", site.getSiteName());
-                BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-                bufferedWriter.write(EHLO_COMMAND);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-                StringBuilder builder = new StringBuilder();
-                String line = null;
-                for (int i = 0; i < 3; i++) {
-                    line = inFromServer.readLine();
-                    builder.append(line);
-                    builder.append("\n");
-                }
-                String sentence2 = builder.toString();
-                Matcher matcher = PATTERN_IP_ADDRESS.matcher(sentence2);
-                if (matcher.find()) {
+        if (site.getApplicationStatus().get(2).getApplicationType() == ApplicationType.SMTP && site.getApplicationStatus().get(2).getEnabled()) {
+            if (site.getEnabled()) {
+                try {
+                    Socket clientSocket = new Socket("earth.liverton.local", 25);
+                    clientSocket.setSoTimeout(1000);
+                    LOGGER.info("{} Did not time out", site.getSiteName());
+                    BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+                    bufferedWriter.write(EHLO_COMMAND);
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                    StringBuilder builder = new StringBuilder();
+                    String line = null;
+                    for (int i = 0; i < 3; i++) {
+                        line = inFromServer.readLine();
+                        builder.append(line);
+                        builder.append("\n");
+                    }
+                    String sentence2 = builder.toString();
+                    Matcher matcher = PATTERN_IP_ADDRESS.matcher(sentence2);
+                    if (matcher.find()) {
 
-                    return SiteState.OKAY;
-                }
-                clientSocket.close();
+                        return SiteState.OKAY;
+                    }
+                    clientSocket.close();
 
-            } catch (Exception e) {
-                LOGGER.error("Unable to poll site ({}) for smtp - error {}", site.getSiteName(), e.getMessage());
+                } catch (Exception e) {
+                    LOGGER.error("Unable to poll site ({}) for smtp - error {}", site.getSiteName(), e.getMessage());
+                }
             }
         }
         return SiteState.ERROR;
@@ -286,6 +293,7 @@ public class SiteServiceImpl implements SiteService {
                             numbers.add(test);
                             MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
                             String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
+//                            http://sms.on.net.nz/sms.cgi?number=%2b64212842309&message=Hello+Shreyansh
 //                            LOGGER.debug(result.toString());
                             site.setSendNotification(true);
                             repository.save(site);
@@ -326,12 +334,14 @@ public class SiteServiceImpl implements SiteService {
         sitePingResult.setPingState(PingState.NO);
         sitePingResult.setDate(new Date());
         sitePingResult.setResponseTime("Did not respond");
-        if (site.getFailureCount() >= 5 && site.getFailureCount() < 10) {
-            site.setState(SiteState.WARNING);
-        } else if (site.getFailureCount() >= 10) {
-            site.setState(SiteState.ERROR);
-
+        if (!site.getAcknowledged()) {
+            if (site.getFailureCount() >= 3 && site.getFailureCount() < 5) {
+                site.setState(SiteState.WARNING);
+            } else if (site.getFailureCount() >= 5) {
+                site.setState(SiteState.ERROR);
+            }
         } else {
+            site.setState(SiteState.ACKNOWLEDGED);
             LOGGER.info("Site with name :{} has failed with count :{}", site.getSiteName(), site.getFailureCount());
         }
     }

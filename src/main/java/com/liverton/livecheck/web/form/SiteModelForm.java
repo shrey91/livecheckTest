@@ -46,7 +46,35 @@ public class SiteModelForm {
 
     private List<ApplicationStatus> applicationStatus;
 
+    private Boolean monitorHttpStatus;
 
+    private Boolean monitorSmtpStatus;
+
+    private Boolean monitorPing;
+
+    public Boolean getMonitorPing() {
+        return monitorPing;
+    }
+
+    public void setMonitorPing(Boolean monitorPing) {
+        this.monitorPing = monitorPing;
+    }
+
+    public Boolean getMonitorHttpStatus() {
+        return monitorHttpStatus;
+    }
+
+    public void setMonitorHttpStatus(Boolean monitorHttpStatus) {
+        this.monitorHttpStatus = monitorHttpStatus;
+    }
+
+    public Boolean getMonitorSmtpStatus() {
+        return monitorSmtpStatus;
+    }
+
+    public void setMonitorSmtpStatus(Boolean monitorSmtpStatus) {
+        this.monitorSmtpStatus = monitorSmtpStatus;
+    }
 
     public String getSiteName() {
         return siteName;
@@ -182,13 +210,16 @@ public class SiteModelForm {
         this.organisation = organisation;
         this.state = state;
         this.averageResponse = averageResponse;
+        this.monitorHttpStatus = monitorHttpStatus;
+        this.monitorSmtpStatus = monitorSmtpStatus;
         this.id = id;
     }
 
     @Override
     public String toString() {
         return "SiteModelForm{" +
-                "siteName='" + siteName + '\'' +
+                "id=" + id +
+                ", siteName='" + siteName + '\'' +
                 ", enabled=" + enabled +
                 ", ipAddress='" + ipAddress + '\'' +
                 ", pingTime='" + pingTime + '\'' +
@@ -198,7 +229,9 @@ public class SiteModelForm {
                 ", organisation=" + organisation +
                 ", state=" + state +
                 ", averageResponse='" + averageResponse + '\'' +
-//                ", sitePingResult=" + sitePingResult +
+                ", applicationStatus=" + applicationStatus +
+                ", monitorHttpStatus=" + monitorHttpStatus +
+                ", monitorSmtpStatus=" + monitorSmtpStatus +
                 '}';
     }
 }

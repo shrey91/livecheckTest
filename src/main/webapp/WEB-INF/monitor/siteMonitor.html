@@ -1,29 +1,31 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>Site Monitor</title>
-        <object th:include="fragments/head :: head" th:remove="tag"/>
-    </head>
-    <body>
-        <div id="wrapper">
-            <div th:replace="fragments/header :: sidebar"/>
-            <div id="page-content-wrapper">
-                <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
-                    <span class="hamb-top"></span>
-                    <span class="hamb-middle"></span>
-                    <span class="hamb-bottom"></span>
-                </button>
-                <div class="container-fluid" style="margin-top: 70px">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Site Monitor</title>
+    <object th:include="fragments/head :: head" th:remove="tag"/>
+</head>
+<body>
+<div id="wrapper">
+    <div th:replace="fragments/header :: sidebar"/>
+    <div id="page-content-wrapper">
+        <button type="button" class="hamburger is-closed" data-toggle="offcanvas">
+            <span class="hamb-top"></span>
+            <span class="hamb-middle"></span>
+            <span class="hamb-bottom"></span>
+        </button>
+        <div class="container-fluid" style="margin-top: 70px">
+            <div class="row">
+                <div class="col-lg-12 col-md-6 col-sm-4 col-lg-offset-0">
                     <div class="row">
-                        <h2>Site Monitor</h2>
-                        <div class="col-lg-12 col-md-6 col-sm-4 col-lg-offset-0">
-                            <div class="row">
-                                <div class="flex-container col-lg-12 col-md-3 col-sm-6" id="refreshResponse">
-
-                                    <th:block th:each="site : ${siteMonitor}">
+                        <div class="flex-container col-lg-12 col-md-3 col-sm-6" id="refreshResponse">
+                          <th:block th:each="org : ${organisations}">
+                              <div class="flex-container col-lg-12 col-md-3 col-sm-6">
+                                  <h2 th:text="${org.orgName}"></h2>
+                              </div>
+                              <th:block th:each="site : ${org.sites}">
                                         <th:block th:if="${site.enabled == true}">
                                             <div class="flex-item-site okay grow" th:id="${site.id}"
                                                  data-toggle="popover"
@@ -79,96 +81,118 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="flex-item-site acknowledged grow" th:id="${site.id}"
+                                                 th:if="${site.state == T(com.liverton.livecheck.model.SiteState).ACKNOWLEDGED}">
+                                                <div>
+                                                    <!--WARNING-->
+                                                    <p class="p-site-name p-siteMonitor" th:text="${site.siteName}"></p>
+
+                                                    <div class="popover-layout" data-content="popover-content"
+                                                         style="display: none"
+                                                         th:id="'details-' + ${site.id}">
+                                                        <p class="p-siteMonitor" th:text="${site.averageResponse}"></p>
+                                                        <th:block
+                                                                th:each="applicationStatus :${site.applicationStatus}">
+                                                            <p class="p-siteMonitor"
+                                                               th:text="${applicationStatus.applicationType.name()} + ' ' +${applicationStatus.siteState} + ' ' + ${applicationStatus.failureCount}"></p>
+                                                        </th:block>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </th:block>
                                     </th:block>
-                                </div>
-                                <!--<div class="flex-container-hidden col-lg-12 col-md-3 col-sm-6" id="refreshView">-->
-                                <!--<th:block th:each="site : ${siteMonitor}">-->
-                                <!--<div th:id="'details-' + ${site.id}" style="display: none">-->
-                                <!--<th:block th:each="applicationStatus :${site.applicationStatus}">-->
-                                <!--<p th:text="${applicationStatus.applicationType.name()} + ' ' +${applicationStatus.siteState} + ' ' + ${applicationStatus.failureCount}"></p>-->
 
-                                <!--</th:block>-->
+                                </th:block>
 
-                                <!--</div>-->
-                                <!--</th:block>-->
-                                <!--</div>-->
-                            </div>
+                            <!--</th:block>-->
                         </div>
-                    </div>
+                        <!--<div class="flex-container-hidden col-lg-12 col-md-3 col-sm-6" id="refreshView">-->
+                        <!--<th:block th:each="site : ${siteMonitor}">-->
+                        <!--<div th:id="'details-' + ${site.id}" style="display: none">-->
+                        <!--<th:block th:each="applicationStatus :${site.applicationStatus}">-->
+                        <!--<p th:text="${applicationStatus.applicationType.name()} + ' ' +${applicationStatus.siteState} + ' ' + ${applicationStatus.failureCount}"></p>-->
 
+                        <!--</th:block>-->
+
+                        <!--</div>-->
+                        <!--</th:block>-->
+                        <!--</div>-->
+                    </div>
                 </div>
             </div>
+
         </div>
+    </div>
+</div>
 
-        <script type="text/javascript">
+<script type="text/javascript">
 
-            $(document).ready(function () {
+    $(document).ready(function () {
 //                console.log('ready');
 
-                setInterval(function () {
+        setInterval(function () {
 //                    console.log('hello');
-                    $.ajax({
-                        url: '/siteMonitor',
-                        cache: false
-                    }).done(function (response) {
-                        var element = $(response).find('#refreshResponse');
-                        var elementHtml = element.html();
-                        $(document).find('div#refreshResponse').html(elementHtml);
-                    });
-                }, 5000);
+            $.ajax({
+                url: '/siteMonitor',
+                cache: false
+            }).done(function (response) {
+                var element = $(response).find('#refreshResponse');
+                var elementHtml = element.html();
+                $(document).find('div#refreshResponse').html(elementHtml);
             });
+        }, 5000);
+    });
 
-            setInterval(function () {
+    setInterval(function () {
 //                console.log("error");
 //                var speech = false;
-                $('.error').each(function (index, e) {
-                    var errors = [$('.error')];
-                    var element = $(e);
+        $('.error').each(function (index, e) {
+            var errors = [$('.error')];
+            var element = $(e);
 
-                    if (errors.length > 5) {
+            if (errors.length > 5) {
 //                            if (element.speech = false) {
-                        var msg = new SpeechSynthesisUtterance("Multiple sites are down");
-                        window.speechSynthesis.speak(msg);
+                var msg = new SpeechSynthesisUtterance("Multiple sites are down");
+                window.speechSynthesis.speak(msg);
 //                        element.speech = true;
 //                            }
-                    }
-                    else {
+            }
+            else {
 //                            if(element.speech = false){
-                        var msg = new SpeechSynthesisUtterance(element.find('.p-site-name').text() + " is down");
-                        window.speechSynthesis.speak(msg);
+                var msg = new SpeechSynthesisUtterance(element.find('.p-site-name').text() + " is down");
+                window.speechSynthesis.speak(msg);
 //                        element.speech = true;
 //                        }
-                    }
-                });
-            }, 15000);
+            }
+        });
+    }, 15000);
 
-            $(document).on('click', '.flex-item-site', function (e) {
-                $('.flex-item-site').each(function (index, e) {
-                    $(e).popover('hide');
-                });
+    $(document).on('click', '.flex-item-site', function (e) {
+        $('.flex-item-site').each(function (index, e) {
+            $(e).popover('hide');
+        });
 
 //                    console.log("hit 1" + e);
-                var id = e.currentTarget.id;
-                var content = $('#details-' + id);
+        var id = e.currentTarget.id;
+        var content = $('#details-' + id);
 //                    console.log("content" + content);
 
-                $(e.currentTarget).popover({
-                    content: $(content).html(),
-                    html: true,
-                    animation: true,
-                    placement: 'bottom'
-                });
-                $(e.currentTarget).popover('show');
-            });
+        $(e.currentTarget).popover({
+            content: $(content).html(),
+            html: true,
+            animation: true,
+            placement: 'bottom'
+        });
+        $(e.currentTarget).popover('show');
+    });
 
 
-            //**For speech synthesis of site names**//
-            //                var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + "is down");
-            //                window.speechSynthesis.speak(msg);
-            //            }
+    //**For speech synthesis of site names**//
+    //                var msg = new SpeechSynthesisUtterance($(e.currentTarget).find('.p-site-name').text() + "is down");
+    //                window.speechSynthesis.speak(msg);
+    //            }
 
-        </script>
-        <div th:replace="fragments/header :: footer"/>
-    </body>
+</script>
+<div th:replace="fragments/header :: footer"/>
+</body>
 </html>

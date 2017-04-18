@@ -5,5 +5,5 @@ package com.liverton.livecheck.model;
  */
 public enum SiteState {
 
-    OKAY, WARNING, ERROR, DISABLED
+    OKAY, WARNING, ERROR, DISABLED, ACKNOWLEDGED
 }
