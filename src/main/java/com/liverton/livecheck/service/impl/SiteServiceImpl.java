@@ -4,6 +4,7 @@ import com.liverton.livecheck.boot.config.Application;
 import com.liverton.livecheck.dao.model.*;
 import com.liverton.livecheck.dao.model.Site;
 import com.liverton.livecheck.dao.repository.ApplicationStatusRepository;
+import com.liverton.livecheck.dao.repository.OrganisationRepository;
 import com.liverton.livecheck.dao.repository.SiteRepository;
 import com.liverton.livecheck.dao.repository.SitePingResultRepository;
 import com.liverton.livecheck.model.ApplicationType;
@@ -21,6 +22,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -57,6 +59,9 @@ public class SiteServiceImpl implements SiteService {
     @Autowired
     private ApplicationStatusRepository applicationStatusRepository;
 
+    @Autowired
+    private OrganisationRepository organisationRepository;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(SiteServiceImpl.class);
     private static final String AUTHORIZATION_KEY = "pHeJUYYg8r2JPjX2A.R6QDd7cUMlVTVhaS.UlM7xF.tFua_vJZhYejqrUsE1gJVNIZLrrA6SCYeZ";
     private static final String EHLO_COMMAND = "ehlo localhost";
@@ -70,7 +75,7 @@ public class SiteServiceImpl implements SiteService {
     }
 
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0/30 * * * * *")
     public void scanSites() {
         LOGGER.info("running scheduled site scan");
 
@@ -248,57 +253,60 @@ public class SiteServiceImpl implements SiteService {
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.setInterceptors(interceptors);
         try {
-            for (Site site : repository.findAll()) {
-                if (!site.getAcknowledged() && site.getEnabled()) {
-                    if (SiteState.ERROR.equals(site.getState()) && !site.getSendNotification()) {
-                        String test = site.getOrganisation().getTextDestination();
+            for (Organisation organisation : organisationRepository.findAll()) {
+                for (Site site : organisation.getSites()) {
+                    if (!site.getAcknowledged() && site.getEnabled()) {
+                        if (SiteState.ERROR.equals(site.getState()) && !site.getSendNotification()) {
+                            String test = organisation.getTextDestination();
 
-                        //**Multiple Email options to implement**//
+                            //**Multiple Email options to implement**//
 //                        String emailSeparator = site.getOrganisation().getToEmail();
 //                        if(emailSeparator.contains(";")){
 //                            List<String> emails = Arrays.asList(emailSeparator.split("\\s*;\\s*"));
 //                        }
 
-                        Properties properties = new Properties();
-                        properties.setProperty("mail.transport.protocol", "smtp");
-                        properties.setProperty("mail.smtp.auth", "true");
-                        properties.setProperty("mail.smtp.starttls.enable", "false");
-                        properties.setProperty("mail.debug", "false");
-                        properties.setProperty("mail.smtp.host", site.getOrganisation().getHost());
-                        properties.setProperty("mail.smtp.port", site.getOrganisation().getPortNumber());
-                        MimeMessageHelper helper = new MimeMessageHelper(mailMessage, true);
-                        helper.setTo(site.getOrganisation().getToEmail());
-                        helper.setFrom(site.getOrganisation().getFromEmail());
-                        helper.setSubject(site.getSiteName() + " is Down");
-                        helper.setText(
-                                site.getSiteName()
-                                        + " is Down. It took "
-                                        + site.getAverageResponse()
-                                        + " to respond. Failed to ping site "
-                                        + site.getFailureCount()
-                                        + " times.");
-                        javaMailSender.send(mailMessage);
+                            Properties properties = new Properties();
+                            properties.setProperty("mail.transport.protocol", "smtp");
+                            properties.setProperty("mail.smtp.auth", "true");
+                            properties.setProperty("mail.smtp.starttls.enable", "false");
+                            properties.setProperty("mail.debug", "false");
+                            properties.setProperty("mail.smtp.host", site.getOrganisation().getHost());
+                            properties.setProperty("mail.smtp.port", site.getOrganisation().getPortNumber());
+                            MimeMessageHelper helper = new MimeMessageHelper(mailMessage, true);
+                            helper.setTo(site.getOrganisation().getToEmail());
+                            helper.setFrom(site.getOrganisation().getFromEmail());
+                            helper.setSubject(site.getSiteName() + " is Down");
+                            helper.setText(
+                                    site.getSiteName()
+                                            + " is Down. It took "
+                                            + site.getAverageResponse()
+                                            + " to respond. Failed to ping site "
+                                            + site.getFailureCount()
+                                            + " times.");
+                            javaMailSender.send(mailMessage);
 
-                        if (test.contains(";")) {
-                            List<String> numbers2 = Arrays.asList(test.split("\\s*;\\s*"));
+                            if (test.contains(";")) {
+                                List<String> numbers2 = Arrays.asList(test.split("\\s*;\\s*"));
 
-                            MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers2);
-                            String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
-                            site.setSendNotification(true);
-                            repository.save(site);
+                                MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers2);
+                                String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
+                                site.setSendNotification(true);
+                                repository.save(site);
 
 //                            LOGGER.debug(result.toString());
-                        } else {
-                            List<String> numbers = new ArrayList<>();
-                            numbers.add(test);
-                            MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
-                            String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
+                            } else {
+                                List<String> numbers = new ArrayList<>();
+                                /*TODO : Add messaging features from Knossos*/
+//                                numbers.add(test);
+//                                MessageRequest messageRequest = new MessageRequest(site.getSiteName() + " is down. IP Address registered to the number is " + site.getIpAddress() + " Failed to ping " + site.getFailureCount() + " times.", numbers);
+//                                String result = restTemplate.postForObject("https://api.clickatell.com/rest/message", messageRequest, String.class);
 //                            http://sms.on.net.nz/sms.cgi?number=%2b64212842309&message=Hello+Shreyansh
 //                            LOGGER.debug(result.toString());
-                            site.setSendNotification(true);
-                            repository.save(site);
-                        }
+                                site.setSendNotification(true);
+                                repository.save(site);
+                            }
 
+                        }
                     }
                 }
             }

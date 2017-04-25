@@ -54,7 +54,7 @@ public class Site extends AbstractPersistable<Long> {
     @JoinColumn(name = "Organisation_id", nullable = false)
     private Organisation organisation;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "site")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "site")
     @Fetch(FetchMode.SELECT)
     @Cascade(value = CascadeType.ALL)
     private List<SitePingResult> sitePingResults = new ArrayList<>();

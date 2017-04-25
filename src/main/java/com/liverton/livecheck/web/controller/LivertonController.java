@@ -121,7 +121,7 @@ public class LivertonController {
     @RequestMapping("/deleteSite")
     public String deleteSite(@RequestParam("id") Long id) {
         siteRepository.delete(id);
-        return "redirect:/siteMonitor";
+        return "redirect:/existingSites";
     }
 
     @RequestMapping("/editSite")

@@ -22,7 +22,7 @@ public class SitePingResult extends AbstractPersistable<Long> {
     @Column(nullable = false)
     private String responseTime;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "Site_id")
     private Site site;
 
@@ -49,6 +49,7 @@ public class SitePingResult extends AbstractPersistable<Long> {
                 "date=" + date +
                 ", pingState=" + pingState +
                 ", responseTime='" + responseTime + '\'' +
+                ", site=" + site +
                 '}';
     }
 
